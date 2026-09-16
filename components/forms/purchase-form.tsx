@@ -51,6 +51,7 @@ type PurchaseFormProps = {
   onCancel?: (() => void) | undefined;
   onSuccess?: (() => void) | undefined;
   defaultIsUsd?: boolean | undefined;
+  variant?: "purchase" | "import" | undefined;
 };
 
 function PurchaseItemPicker({
@@ -191,6 +192,7 @@ function getDefaultValues(
   initialLocationId?: string,
   initialProductId?: string,
   defaultIsUsd = false,
+  variant: "purchase" | "import" = "purchase",
 ): PurchaseFormInput {
   const defaultProduct = options.products.find(
     (product) => product.id === initialProductId,
@@ -205,13 +207,13 @@ function getDefaultValues(
     supplierId: "",
     paymentMethod: "CASH",
     paymentAccountId: "",
-    settlementMode: "FULL",
+    settlementMode: variant === "import" ? "UNPAID" : "FULL",
     amountPaid: 0,
     payments: [],
     purchasedAt: formatDateForInput(),
     note: "",
-    isUsd: defaultIsUsd,
-    exchangeRate: 0,
+    isUsd: defaultIsUsd || variant === "import",
+    exchangeRate: variant === "import" ? options.latestUsdRate || 0 : 0,
     items: [
       {
         productId: defaultProduct?.id ?? "",
@@ -271,6 +273,7 @@ export function PurchaseForm({
   onCancel,
   onSuccess,
   defaultIsUsd = false,
+  variant = "purchase",
 }: PurchaseFormProps) {
   const createDialog = useCreateDialog();
   const router = useRouter();
@@ -278,12 +281,14 @@ export function PurchaseForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [supplierOptions, setSupplierOptions] = useState(options.suppliers);
   const [isSupplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const isImport = variant === "import";
 
   const defaultValues = initialData ?? getDefaultValues(
     { ...options, suppliers: supplierOptions },
     initialLocationId,
     initialProductId,
-    defaultIsUsd,
+    defaultIsUsd || variant === "import",
+    variant,
   );
 
   const canSubmit = options.locations.length > 0 && options.products.length > 0;
@@ -310,6 +315,8 @@ export function PurchaseForm({
   const locationId = form.watch("locationId");
   const supplierId = form.watch("supplierId");
   const settlementMode = form.watch("settlementMode");
+  const isUsd = isImport || Boolean(form.watch("isUsd"));
+  const exchangeRate = Number(form.watch("exchangeRate") || 0);
   const paymentMethod = form.watch("paymentMethod");
   const paymentAccountId = form.watch("paymentAccountId");
   const rawAmountPaid = Number(form.watch("amountPaid") || 0);
@@ -410,6 +417,11 @@ export function PurchaseForm({
   }, [form, items, options.products]);
 
   useEffect(() => {
+    if (!isImport) return;
+    form.setValue("isUsd", true, { shouldDirty: false });
+  }, [form, isImport]);
+
+  useEffect(() => {
     if (supplierOptions.length === 0) {
       if (supplierId) {
         form.setValue("supplierId", "", {
@@ -465,6 +477,8 @@ export function PurchaseForm({
         { ...options, suppliers: supplierOptions },
         form.getValues("locationId") || initialLocationId,
         initialProductId,
+        defaultIsUsd || isImport,
+        variant,
       ),
       locationId: form.getValues("locationId") || defaultValues.locationId,
       supplierId: form.getValues("supplierId") || "",
@@ -517,7 +531,7 @@ export function PurchaseForm({
       createDialog?.close();
       
       if (mode === "page") {
-        router.push("/purchases/list");
+        router.push(cancelHref || (isImport ? "/imports" : "/purchases/list"));
       }
     });
   }
@@ -598,29 +612,31 @@ export function PurchaseForm({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD Tracking</Label>
-                  <div className="flex h-10 w-fit items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 dark:border-slate-800 dark:bg-slate-900/50">
-                    <span className="text-[10px] font-bold uppercase text-slate-400">Track in USD</span>
-                    <button
-                      type="button"
-                      onClick={() => form.setValue("isUsd", !form.watch("isUsd"), { shouldDirty: true })}
-                      className={cn(
-                        "relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                        form.watch("isUsd") ? "bg-blue-600" : "bg-slate-300",
-                      )}
-                    >
-                      <span
+                {!isImport ? (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD Tracking</Label>
+                    <div className="flex h-10 w-fit items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 dark:border-slate-800 dark:bg-slate-900/50">
+                      <span className="text-[10px] font-bold uppercase text-slate-400">Track in USD</span>
+                      <button
+                        type="button"
+                        onClick={() => form.setValue("isUsd", !form.watch("isUsd"), { shouldDirty: true })}
                         className={cn(
-                          "pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                          form.watch("isUsd") ? "translate-x-3" : "translate-x-0",
+                          "relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                          isUsd ? "bg-blue-600" : "bg-slate-300",
                         )}
-                      />
-                    </button>
+                      >
+                        <span
+                          className={cn(
+                            "pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                            isUsd ? "translate-x-3" : "translate-x-0",
+                          )}
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
-                {form.watch("isUsd") && (
+                {isUsd ? (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Exchange Rate (ETB/USD)</Label>
                     <Input
@@ -631,15 +647,17 @@ export function PurchaseForm({
                       {...form.register("exchangeRate")}
                     />
                   </div>
-                )}
+                ) : null}
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Supplier (Optional)</Label>
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      {isImport ? "Supplier" : "Supplier (Optional)"}
+                    </Label>
                     <button type="button" onClick={() => setSupplierDialogOpen(true)} className="text-[10px] font-bold text-primary hover:underline">+ New Supplier</button>
                   </div>
                   <Select {...form.register("supplierId")} className="bg-white dark:bg-slate-950" searchable>
-                    <option value="">Direct Purchase / Walk-in</option>
+                    <option value="">{isImport ? "Select supplier" : "Direct Purchase / Walk-in"}</option>
                     {supplierOptions.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
@@ -725,7 +743,7 @@ export function PurchaseForm({
 
                           <div className="space-y-1">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Buy Price ({form.watch("isUsd") ? "USD" : "ETB"})
+                              Buy Price ({isUsd ? "USD" : "ETB"})
                             </Label>
 
                             <Controller
@@ -742,6 +760,11 @@ export function PurchaseForm({
                                 />
                               )}
                             />
+                            {isUsd && exchangeRate > 0 ? (
+                              <p className="text-[10px] font-medium text-muted-foreground">
+                                {formatCurrency(Number(items[index]?.unitCost || 0) * exchangeRate)} ETB
+                              </p>
+                            ) : null}
 
                           </div>
 
@@ -816,9 +839,17 @@ export function PurchaseForm({
                       
                       <div className="flex flex-wrap gap-2">
                         {[
-                          { id: "FULL", label: "FULL PAYMENT", color: "bg-green-600" },
-                          { id: "PARTIAL", label: "PARTIAL", color: "bg-amber-500" },
-                          { id: "UNPAID", label: "PAY LATER", color: "bg-slate-700" }
+                          ...(isImport
+                            ? [
+                                { id: "UNPAID", label: "PAY LATER", color: "bg-slate-700" },
+                                { id: "PARTIAL", label: "PARTIAL", color: "bg-amber-500" },
+                                { id: "FULL", label: "FULL PAYMENT", color: "bg-green-600" },
+                              ]
+                            : [
+                                { id: "FULL", label: "FULL PAYMENT", color: "bg-green-600" },
+                                { id: "PARTIAL", label: "PARTIAL", color: "bg-amber-500" },
+                                { id: "UNPAID", label: "PAY LATER", color: "bg-slate-700" },
+                              ]),
                         ].map((mode) => (
                           <button
                             key={mode.id}
@@ -876,7 +907,7 @@ export function PurchaseForm({
                                     </Select>
                                   </div>
                                   <div className="flex-1 min-w-[100px] space-y-1">
-                                    <Label className="text-[9px] font-bold uppercase text-slate-400 pl-1">Amount ({form.watch("isUsd") ? "$" : "ETB"})</Label>
+                                    <Label className="text-[9px] font-bold uppercase text-slate-400 pl-1">Amount ({isUsd ? "$" : "ETB"})</Label>
                                     <Controller
                                       control={form.control}
                                       name={`payments.${index}.amount`}
@@ -914,29 +945,34 @@ export function PurchaseForm({
                         <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
                           <span>Gross Subtotal</span>
                           <span className="text-slate-600 font-black">
-                            {form.watch("isUsd") ? `$ ${subtotal.toLocaleString()}` : formatCurrency(subtotal)}
+                            {isUsd ? `$ ${subtotal.toLocaleString()}` : formatCurrency(subtotal)}
                           </span>
                         </div>
                         <div className="h-px bg-slate-100 dark:bg-slate-800" />
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm font-black uppercase tracking-tighter text-slate-900 dark:text-white">Payable Amount</span>
                           <span className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
-                            {form.watch("isUsd") ? `$ ${total.toLocaleString()}` : formatCurrency(total)}
+                            {isUsd ? `$ ${total.toLocaleString()}` : formatCurrency(total)}
                           </span>
                         </div>
+                        {isUsd && exchangeRate > 0 ? (
+                          <p className="text-right text-[10px] font-semibold text-muted-foreground">
+                            {formatCurrency(total * exchangeRate)} ETB at {exchangeRate.toLocaleString()} rate
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/50">
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                           <span className="text-slate-400">Paid Amount</span>
                           <span className="text-green-600">
-                            {form.watch("isUsd") ? `$ ${effectiveAmountPaid.toLocaleString()}` : formatCurrency(effectiveAmountPaid)}
+                            {isUsd ? `$ ${effectiveAmountPaid.toLocaleString()}` : formatCurrency(effectiveAmountPaid)}
                           </span>
                         </div>
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                           <span className="text-slate-400">Balance Due</span>
                           <span className={cn(amountDue > 0 ? "text-destructive" : "text-green-600")}>
-                            {form.watch("isUsd") ? `$ ${amountDue.toLocaleString()}` : formatCurrency(amountDue)}
+                            {isUsd ? `$ ${amountDue.toLocaleString()}` : formatCurrency(amountDue)}
                           </span>
                         </div>
                       </div>
@@ -946,7 +982,7 @@ export function PurchaseForm({
                         disabled={isPending || !canSubmit || !canPostWithPayment}
                         className="w-full h-14 rounded-2xl bg-[linear-gradient(135deg,hsl(var(--brand-blue)),hsl(var(--brand-cyan)))] text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
                       >
-                        {isPending ? "PROCESSING..." : defaultValues.id ? "UPDATE PURCHASE" : "COMPLETE ORDER"}
+                        {isPending ? "PROCESSING..." : defaultValues.id ? "UPDATE PURCHASE" : isImport ? "RECEIVE IMPORT" : "COMPLETE ORDER"}
                       </Button>
                       
                       <Button

@@ -12,10 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CustomerForm } from "@/components/forms/customer-form";
+import { CreditLimitNotice } from "@/components/sales/credit-limit-notice";
 import { createSaleAction, getRecentSalesAction } from "@/lib/actions/sales";
+import { evaluateCreditLimit, salePartyLabel } from "@/lib/credit-limit";
 import { formatFinanceAccountLabel } from "@/lib/finance-account-utils";
 import { CurrencyInput } from "@/components/ui/currency-input";
-import type { SaleFormOptions } from "@/lib/types";
+import type { NamedOption, SaleFormOptions } from "@/lib/types";
 import { cn, formatCurrency, formatCustomerName, formatDateForInput } from "@/lib/utils";
 import { PrintButton } from "@/components/shared/print-button";
 import type { SaleFormInput } from "@/lib/validation/sale";
@@ -85,7 +87,7 @@ export function PosSaleForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [addedCustomers, setAddedCustomers] = useState<{ id: string; name: string; businessName?: string | null }[]>([]);
+  const [addedCustomers, setAddedCustomers] = useState<NamedOption[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [locationId, setLocationId] = useState(initialLocationId ?? "");
@@ -197,7 +199,13 @@ export function PosSaleForm({
   ));
   const usesCheque = paymentMethod === "CHEQUE" || (paymentMethod === "MIXED" && payments.some((p) => p.method === "CHEQUE"));
 
-  const canSubmit = locationId && cart.length > 0 && total > 0 && canUseAccount && hasRequiredChequeInfo && mixedHasRequiredChequeInfo && !isOverpaid && (amountDue <= 0.01 || customerId) && (!usesCheque || customerId);
+  const selectedParty = allCustomers.find((customer) => customer.id === customerId);
+  const creditStatus = evaluateCreditLimit({
+    creditLimit: Number(selectedParty?.creditLimit || 0),
+    outstanding: Number(selectedParty?.creditBalance || 0),
+    additionalDue: amountDue,
+  });
+  const canSubmit = locationId && cart.length > 0 && total > 0 && canUseAccount && hasRequiredChequeInfo && mixedHasRequiredChequeInfo && !isOverpaid && (amountDue <= 0.01 || customerId) && (!usesCheque || customerId) && (amountDue <= 0.01 || creditStatus.allowed);
 
   useEffect(() => {
     if (paymentMethod === "CREDIT") {
@@ -434,7 +442,7 @@ export function PosSaleForm({
 
             <div className="flex-1 min-w-[240px] space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="pos-customer" className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em]">Customer</Label>
+                <Label htmlFor="pos-customer" className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em]">Customer / Agent</Label>
                 <Dialog open={quickAddOpen} onOpenChange={setQuickAddOpen}>
                   <DialogTrigger asChild>
                     <button type="button" className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/50 px-2.5 py-1 text-[10px] font-black text-blue-600 transition-all hover:bg-blue-600 hover:text-white">
@@ -443,13 +451,18 @@ export function PosSaleForm({
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                      <DialogTitle>Quick add customer</DialogTitle>
-                      <DialogDescription>Create a customer account to enable credit sales and order tracking.</DialogDescription>
+                      <DialogTitle>Quick add customer or agent</DialogTitle>
+                      <DialogDescription>Choose Customer or Agent and set a credit limit if they will buy on credit.</DialogDescription>
                     </DialogHeader>
                     <CustomerForm
                       refreshAfterSuccess={false}
                       onSuccess={(customer) => {
-                        setAddedCustomers((prev) => [...prev, customer]);
+                        setAddedCustomers((prev) => [...prev, {
+                          ...customer,
+                          partyType: customer.partyType ?? "CUSTOMER",
+                          creditLimit: Number(customer.creditLimit || 0),
+                          creditBalance: 0,
+                        }]);
                         setCustomerId(customer.id);
                         setQuickAddOpen(false);
                       }}
@@ -460,7 +473,7 @@ export function PosSaleForm({
               </div>
               <Select id="pos-customer" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
                 <option value="">Walk-in customer</option>
-                {allCustomers.map((c) => <option key={c.id} value={c.id}>{formatCustomerName(c)}</option>)}
+                {allCustomers.map((c) => <option key={c.id} value={c.id}>{salePartyLabel(c)}</option>)}
               </Select>
             </div>
 
@@ -846,6 +859,8 @@ export function PosSaleForm({
                 </button>
               ))}
             </div>
+
+            <CreditLimitNotice party={selectedParty} additionalDue={amountDue} />
 
             {/* Mixed Payment Interface */}
             {paymentMethod === "MIXED" && (

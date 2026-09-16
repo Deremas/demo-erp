@@ -47,6 +47,14 @@ export const purchaseSchema = z.object({
     seenProductIds.add(itemKey);
   });
 
+  if (value.isUsd && !value.supplierId?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Choose the foreign supplier for this import.",
+      path: ["supplierId"],
+    });
+  }
+
   // Supplier requirement for non-full-settlement
   if (!value.supplierId?.trim() && value.settlementMode !== "FULL") {
     ctx.addIssue({

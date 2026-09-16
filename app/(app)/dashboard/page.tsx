@@ -160,7 +160,7 @@ export default async function DashboardPage(props: {
             <CardTitle>Client demo path</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3 text-sm">
-            <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/purchases/imports">1. Receive import</a>
+            <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/imports/new">1. Receive import</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/inventory/transfers">2. Transfer to shop</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/sales/pos">3. Cash/credit sale</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/sales/agent-credit">4. Agent credit</a>

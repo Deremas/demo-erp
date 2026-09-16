@@ -28,6 +28,7 @@ import {
   syncLowStockAlert,
 } from "@/lib/services/inventory-ledger";
 import { saleSchema, type SaleFormInput, type SaleInput } from "@/lib/validation/sale";
+import { assertCreditWithinLimit, loadPartyCredit } from "@/lib/credit-limit";
 
 type ParsedSalePayment = NonNullable<SaleInput["payments"]>[number];
 
@@ -181,17 +182,6 @@ export async function createSaleAction(
         }
       }
 
-      if (customerId) {
-        const customer = await tx.customer.findUnique({
-          where: { id: customerId },
-          select: { id: true },
-        });
-
-        if (!customer) {
-          throw new Error("Selected customer was not found.");
-        }
-      }
-
       const productIds = [...new Set(parsed.data.items.map((item) => item.productId))];
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
@@ -270,6 +260,19 @@ export async function createSaleAction(
         throw new Error("A customer must be selected for cheque sales.");
       }
 
+      const saleParty = customerId ? await loadPartyCredit(tx, customerId) : null;
+      if (saleParty && amountDue > 0.01) {
+        assertCreditWithinLimit({
+          partyName: saleParty.name,
+          partyType: saleParty.partyType,
+          creditLimit: saleParty.creditLimit,
+          outstanding: saleParty.outstanding,
+          additionalDue: amountDue,
+        });
+      }
+
+      const counterpartyType = saleParty?.partyType === "AGENT" ? "Agent" : customerId ? "Customer" : "WalkIn";
+
       const saleNumber = createDocumentNumber("SAL", soldAt);
 
       const sale = await tx.sale.create({
@@ -345,7 +348,7 @@ export async function createSaleAction(
           sourceType: "Sale",
           sourceId: sale.id,
           sourceLineId: saleItem.id,
-          counterpartyType: customerId ? "Customer" : "WalkIn",
+          counterpartyType,
           ...(customerId ? { counterpartyId: customerId } : {}),
         });
 
@@ -546,13 +549,6 @@ export async function updateSaleAction(
         }
       }
 
-      if (customerId) {
-        const customer = await tx.customer.findUnique({
-          where: { id: customerId },
-        });
-        if (!customer) throw new Error("Customer not found.");
-      }
-
       const productIds = [...new Set(parsed.data.items.map((item) => item.productId))];
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
@@ -613,6 +609,19 @@ export async function updateSaleAction(
       if (saleUsesCheque(parsed.data) && !customerId) {
         throw new Error("A customer must be selected for cheque sales.");
       }
+
+      const saleParty = customerId ? await loadPartyCredit(tx, customerId, existing.id) : null;
+      if (saleParty && amountDue > 0.01) {
+        assertCreditWithinLimit({
+          partyName: saleParty.name,
+          partyType: saleParty.partyType,
+          creditLimit: saleParty.creditLimit,
+          outstanding: saleParty.outstanding,
+          additionalDue: amountDue,
+        });
+      }
+
+      const counterpartyType = saleParty?.partyType === "AGENT" ? "Agent" : customerId ? "Customer" : "WalkIn";
 
       // 1. Revert Old State
       await tx.stockMovement.deleteMany({
@@ -697,7 +706,7 @@ export async function updateSaleAction(
           sourceType: "Sale",
           sourceId: updatedSale.id,
           sourceLineId: saleItem.id,
-          counterpartyType: customerId ? "Customer" : "Walk-in",
+          counterpartyType,
           ...(customerId ? { counterpartyId: customerId } : {}),
         });
 

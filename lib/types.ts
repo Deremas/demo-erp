@@ -14,6 +14,9 @@ export type NamedOption = {
   id: string;
   name: string;
   businessName?: string | null;
+  partyType?: "CUSTOMER" | "AGENT";
+  creditLimit?: number;
+  creditBalance?: number;
 };
 
 export type ProductOption = {
@@ -34,6 +37,7 @@ export type PurchaseFormOptions = {
   suppliers: NamedOption[];
   products: ProductOption[];
   accounts: FinanceAccountOption[];
+  latestUsdRate?: number;
 };
 
 

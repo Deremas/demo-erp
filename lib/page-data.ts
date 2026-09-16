@@ -289,6 +289,7 @@ async function getFilterFields(
     type: "multiselect",
     placeholder: "All categories",
     options: options.categoryOptions,
+    advanced: true,
   });
   const brand = filterField({
     key: "brandId",
@@ -296,6 +297,7 @@ async function getFilterFields(
     type: "multiselect",
     placeholder: "All brands",
     options: options.brandOptions,
+    advanced: true,
   });
   const company = filterField({
     key: "companyId",
@@ -303,6 +305,7 @@ async function getFilterFields(
     type: "multiselect",
     placeholder: "All brand owners",
     options: options.companyOptions,
+    advanced: true,
   });
   const product = filterField({
     key: "productId",
@@ -310,6 +313,7 @@ async function getFilterFields(
     type: "multiselect",
     placeholder: "All items",
     options: options.productOptions,
+    advanced: true,
   });
   const customer = filterField({
     key: "customerId",
@@ -317,6 +321,7 @@ async function getFilterFields(
     type: "multiselect",
     placeholder: "All customers",
     options: options.customerOptions,
+    advanced: true,
   });
   const supplier = filterField({
     key: "supplierId",
@@ -368,6 +373,7 @@ async function getFilterFields(
           type: "multiselect",
           placeholder: "All movement types",
           options: movementTypeOptions,
+          advanced: true,
         }),
         dateFrom,
         dateTo,
@@ -389,6 +395,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All statuses",
           options: saleStatusOptions,
+          advanced: true,
         }),
         filterField({
           key: "paymentMethod",
@@ -396,6 +403,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All methods",
           options: salePaymentMethodOptions,
+          advanced: true,
         }),
         paymentStatus,
         dateFrom,
@@ -457,6 +465,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All types",
           options: [option("Customer", "CUSTOMER"), option("Agent", "AGENT")],
+          advanced: true,
         }),
         filterField({
           key: "status",
@@ -467,6 +476,7 @@ async function getFilterFields(
         }),
       ];
     case "salesCustomerPayments":
+    case "salesAgentPayments":
       return [
         search("Search customer, receipt, or sale no."),
         location,
@@ -477,12 +487,14 @@ async function getFilterFields(
           type: "select",
           placeholder: "All accounts",
           options: options.financeAccountOptions,
+          advanced: true,
         }),
         dateFrom,
         dateTo,
       ];
     case "purchasesList":
     case "purchasesImports":
+    case "purchasesImportPayables":
       return [
         search("Search supplier, invoice, purchase no., or item"),
         location,
@@ -530,6 +542,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All accounts",
           options: options.financeAccountOptions,
+          advanced: true,
         }),
         dateFrom,
         dateTo,
@@ -544,6 +557,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All categories",
           options: options.expenseCategoryOptions,
+          advanced: true,
         }),
         filterField({
           key: "paymentMethod",
@@ -551,6 +565,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All accounts",
           options: options.financeAccountOptions,
+          advanced: true,
         }),
         dateFrom,
         dateTo,
@@ -568,6 +583,7 @@ async function getFilterFields(
             option("Bank Accounts", "BANK"),
             option("Cash Accounts", "CASH"),
           ],
+          advanced: true,
         }),
         filterField({
           key: "paymentMethod",
@@ -575,6 +591,7 @@ async function getFilterFields(
           type: "select",
           placeholder: "All accounts",
           options: options.financeAccountOptions,
+          advanced: true,
         }),
         filterField({
           key: "type",
@@ -589,6 +606,7 @@ async function getFilterFields(
             option("Supplier Payment", "SUPPLIER_PAYMENT"),
             option("Cash Transfer", "CASH_TRANSFER"),
           ],
+          advanced: true,
         }),
         dateFrom,
         dateTo,
@@ -671,6 +689,7 @@ async function getFilterFields(
           type: "multiselect",
           placeholder: "All movement types",
           options: movementTypeOptions,
+          advanced: true,
         }),
         dateFrom,
         dateTo,
@@ -701,8 +720,10 @@ export type TablePageKey =
   | "salesCustomerCredit"
   | "salesAgentCredit"
   | "salesCustomerPayments"
+  | "salesAgentPayments"
   | "purchasesList"
   | "purchasesImports"
+  | "purchasesImportPayables"
   | "purchasesPurchasedItems"
   | "purchasesSuppliers"
   | "purchasesSupplierPayments"
@@ -1196,6 +1217,26 @@ export async function getTablePageConfig(
         ],
         rows: await getCustomerPaymentRows(normalizedFilters),
       };
+    case "salesAgentPayments":
+      return {
+        eyebrow: "Agents",
+        title: "Collections",
+        description: "Payments collected against outstanding agent credit.",
+        actionLabel: "Record collection",
+        exportFileName: "agent-collections",
+        filters: filterFields,
+        columns: [
+          { key: "receiptNumber", header: "Receipt No.", defaultHidden: true },
+          { key: "customer", header: "Agent" },
+          { key: "location", header: "Location" },
+          { key: "paymentMethod", header: "Method" },
+          { key: "amount", header: "Amount", type: "currency", showTotal: true },
+          { key: "appliedTo", header: "Applied To" },
+          { key: "paidAt", header: "Paid At", type: "dateTime" },
+          { key: "status", header: "Status", type: "status" },
+        ],
+        rows: await getCustomerPaymentRows({ ...normalizedFilters, type: "AGENT" }),
+      };
     case "purchasesList":
       return {
         eyebrow: "Purchases",
@@ -1221,12 +1262,12 @@ export async function getTablePageConfig(
       };
     case "purchasesImports":
       return {
-        eyebrow: "Purchases",
-        title: "Imports",
+        eyebrow: "Imports",
+        title: "Import List",
         description:
-          "USD-tracked import purchases with supplier balances and warehouse receiving history.",
+          "USD import invoices received into warehouses and stores.",
         actionLabel: "New import",
-        actionHref: "/purchases/new",
+        actionHref: "/imports/new",
         exportFileName: "imports",
         filters: filterFields,
         columns: [
@@ -1241,6 +1282,28 @@ export async function getTablePageConfig(
           { key: "purchasedAt", header: "Purchased At", type: "dateTime" },
         ],
         rows: await getPurchaseRows({ ...normalizedFilters, type: "IMPORT" }),
+      };
+    case "purchasesImportPayables":
+      return {
+        eyebrow: "Imports",
+        title: "USD Payables",
+        description: "Unpaid and partially paid import invoices still due to foreign suppliers.",
+        actionLabel: "Pay supplier",
+        actionHref: "/purchases/supplier-payments",
+        exportFileName: "import-payables",
+        filters: filterFields,
+        columns: [
+          { key: "purchaseNumber", header: "Purchase No.", defaultHidden: true },
+          { key: "location", header: "Received at" },
+          { key: "supplier", header: "Supplier" },
+          { key: "total", header: "Invoice Total", type: "currency", showTotal: true },
+          { key: "amountDue", header: "Balance Due", type: "currency", showTotal: true },
+          { key: "usdTotal", header: "Total (USD)", type: "usd", showTotal: true },
+          { key: "usdAmountDue", header: "Balance (USD)", type: "usd", showTotal: true },
+          { key: "paymentStatus", header: "Payment Status", type: "status" },
+          { key: "purchasedAt", header: "Purchased At", type: "dateTime" },
+        ],
+        rows: await getPurchaseRows({ ...normalizedFilters, type: "IMPORT", paymentStatus: "DUE" }),
       };
     case "purchasesPurchasedItems":
       return {

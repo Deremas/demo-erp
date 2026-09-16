@@ -484,7 +484,9 @@ export async function getCustomerRows(filters: SalesFilters = {}) {
         createRowAction({
           key: "settle",
           label: "Settle Credit",
-          href: `/sales/customer-payments?customerId=${customer.id}&open=1`,
+          href: customer.partyType === "AGENT"
+            ? `/sales/agent-collections?customerId=${customer.id}&open=1`
+            : `/sales/customer-payments?customerId=${customer.id}&open=1`,
           icon: "customerPayments",
           showLabel: true,
         }),
@@ -534,12 +536,13 @@ export async function getCustomerCreditRows(filters: SalesFilters = {}) {
 }
 
 export async function getCustomerPaymentRows(filters: SalesFilters = {}) {
-  const { locationId, customerId, search, paymentMethod, dateFrom, dateTo } = filters;
+  const { locationId, customerId, search, paymentMethod, dateFrom, dateTo, type } = filters;
 
   const locationIds = parseFilterList(locationId);
 
   const where: any = {
     ...(customerId ? { customerId: idListWhere(parseFilterList(customerId)) } : {}),
+    ...(type === "AGENT" || type === "CUSTOMER" ? { customer: { partyType: type } } : {}),
     ...(locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {}),
     ...(paymentMethod ? { financeAccountId: paymentMethod } : {}),
     ...(dateFrom || dateTo

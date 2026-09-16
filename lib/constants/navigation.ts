@@ -35,78 +35,18 @@ export const navigationEntries: NavigationEntry[] = [
     title: "Inventory",
     icon: "inventory",
     items: [
-      {
-        title: "Current Stock",
-        href: "/inventory/stock",
-        icon: "stockOverview",
-        permission: "inventory:view",
-      },
-      {
-        title: "Transfers",
-        href: "/inventory/transfers",
-        icon: "transfers",
-        permission: "inventory:transfer",
-      },
-      {
-        title: "Stock Movements",
-        href: "/inventory/stock-movements",
-        icon: "stockMovements",
-        permission: "inventory:view",
-      },
-      {
-        title: "Low Stock",
-        href: "/inventory/low-stock",
-        icon: "lowStock",
-        permission: "inventory:view",
-      },
-      {
-        title: "Out of Stock",
-        href: "/inventory/out-of-stock",
-        icon: "alertRecords",
-        permission: "inventory:view",
-      },
-      {
-        title: "Alert Records",
-        href: "/inventory/alert-records",
-        icon: "alertRecords",
-        permission: "inventory:view",
-      },
-      {
-        title: "Price Adjustment",
-        href: "/inventory/price-adjustments",
-        icon: "finance",
-        permission: "inventory:adjust-prices",
-      },
-      {
-        title: "Items",
-        href: "/inventory/products",
-        icon: "products",
-        permission: "inventory:edit",
-      },
-      {
-        title: "Categories",
-        href: "/inventory/categories",
-        icon: "products",
-        permission: "inventory:edit",
-      },
-      {
-        title: "Brands",
-        href: "/inventory/brands",
-        icon: "suppliers",
-        permission: "inventory:edit",
-      },
-      {
-        title: "Brand Owners",
-        href: "/inventory/companies",
-        icon: "suppliers",
-        permission: "inventory:edit",
-      },
-      {
-        title: "Units",
-        href: "/inventory/units",
-        icon: "alertRecords",
-        permission: "inventory:edit",
-      },
+      { title: "Current Stock", href: "/inventory/stock", icon: "stockOverview", permission: "inventory:view" },
+      { title: "Transfers", href: "/inventory/transfers", icon: "transfers", permission: "inventory:transfer" },
+      { title: "Stock Movements", href: "/inventory/stock-movements", icon: "stockMovements", permission: "inventory:view" },
+      { title: "Low Stock", href: "/inventory/low-stock", icon: "lowStock", permission: "inventory:view" },
+      { title: "Out of Stock", href: "/inventory/out-of-stock", icon: "alertRecords", permission: "inventory:view" },
+      { title: "Alert Records", href: "/inventory/alert-records", icon: "alertRecords", permission: "inventory:view" },
+      { title: "Price Adjustment", href: "/inventory/price-adjustments", icon: "finance", permission: "inventory:adjust-prices" },
+      { title: "Items", href: "/inventory/products", icon: "products", permission: "inventory:edit" },
+      { title: "Categories", href: "/inventory/categories", icon: "products", permission: "inventory:edit" },
+      { title: "Brands", href: "/inventory/brands", icon: "suppliers", permission: "inventory:edit" },
+      { title: "Brand Owners", href: "/inventory/companies", icon: "suppliers", permission: "inventory:edit" },
+      { title: "Units", href: "/inventory/units", icon: "alertRecords", permission: "inventory:edit" },
     ],
   },
   {
@@ -114,66 +54,24 @@ export const navigationEntries: NavigationEntry[] = [
     title: "Sales",
     icon: "sales",
     items: [
-      {
-        title: "POS Sale",
-        href: "/sales/pos",
-        icon: "newSale",
-        permission: "sales:create",
-      },
-      {
-        title: "Wholesale",
-        href: "/sales/wholesale",
-        icon: "salesList",
-        permission: "sales:create",
-      },
-      {
-        title: "Sales List",
-        href: "/sales/sales-list",
-        icon: "salesList",
-        permission: "sales:view",
-      },
-      {
-        title: "Sold Items",
-        href: "/sales/sold-items",
-        icon: "products",
-        permission: "sales:view",
-      },
-      {
-        title: "Delivery Orders",
-        href: "/sales/delivery-orders",
-        icon: "transfers",
-        permission: "sales:view",
-      },
-      {
-        title: "Customers",
-        href: "/sales/customers",
-        icon: "customers",
-        permission: "customers:view",
-      },
-      {
-        title: "Agents",
-        href: "/sales/agents",
-        icon: "customers",
-        permission: "customers:view",
-      },
-      {
-        title: "Customer Credit",
-        href: "/sales/customer-credit",
-        icon: "customerCredit",
-        permission: "customers:view",
-      },
-      {
-        title: "Agent Credit",
-        href: "/sales/agent-credit",
-        icon: "customerCredit",
-        permission: "customers:view",
-      },
-      {
-        title: "Payments",
-        href: "/sales/customer-payments",
-        icon: "customerPayments",
-        permission: "customer-payments:create",
-      },
+      { title: "POS Sale", href: "/sales/pos", icon: "newSale", permission: "sales:create" },
+      { title: "Wholesale", href: "/sales/wholesale", icon: "salesList", permission: "sales:create" },
+      { title: "Sales List", href: "/sales/sales-list", icon: "salesList", permission: "sales:view" },
+      { title: "Sold Items", href: "/sales/sold-items", icon: "products", permission: "sales:view" },
+      { title: "Delivery Orders", href: "/sales/delivery-orders", icon: "transfers", permission: "sales:view" },
+      { title: "Customers", href: "/sales/customers", icon: "customers", permission: "customers:view" },
+      { title: "Customer Credit", href: "/sales/customer-credit", icon: "customerCredit", permission: "customers:view" },
+      { title: "Payments", href: "/sales/customer-payments", icon: "customerPayments", permission: "customer-payments:create" },
+    ],
+  },
+  {
+    type: "group",
+    title: "Agents",
+    icon: "customers",
+    items: [
+      { title: "Agents", href: "/sales/agents", icon: "customers", permission: "customers:view" },
+      { title: "Agent Credit", href: "/sales/agent-credit", icon: "customerCredit", permission: "customers:view" },
+      { title: "Collections", href: "/sales/agent-collections", icon: "customerPayments", permission: "customer-payments:create" },
     ],
   },
   {
@@ -181,42 +79,28 @@ export const navigationEntries: NavigationEntry[] = [
     title: "Purchases",
     icon: "purchases",
     items: [
-      {
-        title: "New Purchase",
-        href: "/purchases/new",
-        icon: "newPurchase",
-        permission: "purchases:create",
-      },
-      {
-        title: "Imports",
-        href: "/purchases/imports",
-        icon: "upload",
-        permission: "purchases:view",
-      },
-      {
-        title: "Purchase List",
-        href: "/purchases/list",
-        icon: "purchaseList",
-        permission: "purchases:view",
-      },
-      {
-        title: "Purchased Items",
-        href: "/purchases/purchased-items",
-        icon: "products",
-        permission: "purchases:view",
-      },
-      {
-        title: "Suppliers",
-        href: "/purchases/suppliers",
-        icon: "suppliers",
-        permission: "suppliers:view",
-      },
-      {
-        title: "Supplier Payments",
-        href: "/purchases/supplier-payments",
-        icon: "supplierPayments",
-        permission: "supplier-payments:view",
-      },
+      { title: "New Purchase", href: "/purchases/new", icon: "newPurchase", permission: "purchases:create" },
+      { title: "Purchase List", href: "/purchases/list", icon: "purchaseList", permission: "purchases:view" },
+      { title: "Purchased Items", href: "/purchases/purchased-items", icon: "products", permission: "purchases:view" },
+    ],
+  },
+  {
+    type: "group",
+    title: "Imports",
+    icon: "upload",
+    items: [
+      { title: "New Import", href: "/imports/new", icon: "newPurchase", permission: "purchases:create" },
+      { title: "Import List", href: "/imports", icon: "purchaseList", permission: "purchases:view" },
+      { title: "USD Payables", href: "/imports/payables", icon: "supplierPayments", permission: "purchases:view" },
+    ],
+  },
+  {
+    type: "group",
+    title: "Suppliers",
+    icon: "suppliers",
+    items: [
+      { title: "Suppliers", href: "/purchases/suppliers", icon: "suppliers", permission: "suppliers:view" },
+      { title: "Supplier Payments", href: "/purchases/supplier-payments", icon: "supplierPayments", permission: "supplier-payments:view" },
     ],
   },
   {
@@ -224,48 +108,13 @@ export const navigationEntries: NavigationEntry[] = [
     title: "Finance",
     icon: "finance",
     items: [
-      {
-        title: "Finance Accounts",
-        href: "/finance/accounts",
-        icon: "finance",
-        permission: "accounts:view",
-      },
-      {
-        title: "Cash",
-        href: "/finance/cash",
-        icon: "cashTransfers",
-        permission: "cash-transfers:view",
-      },
-      {
-        title: "Cheques",
-        href: "/finance/cheques",
-        icon: "customerPayments",
-        permission: "cheques:view",
-      },
-      {
-        title: "Expense List",
-        href: "/finance/expenses",
-        icon: "expenses",
-        permission: "expenses:view",
-      },
-      {
-        title: "Expense Categories",
-        href: "/finance/expenses/categories",
-        icon: "products",
-        permission: "settings:manage",
-      },
-      {
-        title: "Cash Transfers",
-        href: "/finance/cash-transfers",
-        icon: "cashTransfers",
-        permission: "cash-transfers:view",
-      },
-      {
-        title: "Ledger",
-        href: "/finance/ledger",
-        icon: "ledger",
-        permission: "ledger:view",
-      },
+      { title: "Accounts", href: "/finance/accounts", icon: "finance", permission: "accounts:view" },
+      { title: "Cash", href: "/finance/cash", icon: "cashTransfers", permission: "cash-transfers:view" },
+      { title: "Cheques", href: "/finance/cheques", icon: "customerPayments", permission: "cheques:view" },
+      { title: "Transfers", href: "/finance/cash-transfers", icon: "cashTransfers", permission: "cash-transfers:view" },
+      { title: "Ledger", href: "/finance/ledger", icon: "ledger", permission: "ledger:view" },
+      { title: "Expenses", href: "/finance/expenses", icon: "expenses", permission: "expenses:view" },
+      { title: "Expense Categories", href: "/finance/expenses/categories", icon: "products", permission: "settings:manage" },
     ],
   },
   {
@@ -283,76 +132,32 @@ export const navigationEntries: NavigationEntry[] = [
     permission: "ai:view",
   },
   {
-    type: "link",
-    title: "Demo & Quotation",
-    href: "/demo",
-    icon: "demo",
-    permission: "demo:view",
-  },
-  {
     type: "group",
     title: "Setup",
     icon: "admin",
     permission: "users:view",
     items: [
-      {
-        title: "System Setup",
-        href: "/setup",
-        icon: "settings",
-        permission: "settings:manage",
-      },
-      {
-        title: "Locations",
-        href: "/admin/locations",
-        icon: "warehouse",
-        permission: "settings:manage",
-      },
-      {
-        title: "Users",
-        href: "/admin/users",
-        icon: "users",
-        permission: "users:view",
-      },
-      {
-        title: "Roles",
-        href: "/admin/roles",
-        icon: "roles",
-        permission: "roles:view",
-      },
-      {
-        title: "Backups",
-        href: "/admin/backups",
-        icon: "backups",
-        permission: "backups:manage",
-      },
-      {
-        title: "Audit Logs",
-        href: "/admin/audit-logs",
-        icon: "auditLogs",
-        permission: "audit:view",
-      },
-      {
-        title: "Audit Coverage",
-        href: "/admin/audit-coverage",
-        icon: "auditLogs",
-        permission: "audit:view",
-      },
-      {
-        title: "Settings",
-        href: "/admin/settings",
-        icon: "settings",
-        permission: "settings:manage",
-      },
+      { title: "System Setup", href: "/setup", icon: "settings", permission: "settings:manage" },
+      { title: "Locations", href: "/admin/locations", icon: "warehouse", permission: "settings:manage" },
+      { title: "Users", href: "/admin/users", icon: "users", permission: "users:view" },
+      { title: "Roles", href: "/admin/roles", icon: "roles", permission: "roles:view" },
+      { title: "Audit Logs", href: "/admin/audit-logs", icon: "auditLogs", permission: "audit:view" },
+      { title: "Audit Coverage", href: "/admin/audit-coverage", icon: "auditLogs", permission: "audit:view" },
+      { title: "Backups", href: "/admin/backups", icon: "backups", permission: "backups:manage" },
+      { title: "Settings", href: "/admin/settings", icon: "settings", permission: "settings:manage" },
+      { title: "Demo & Quotation", href: "/demo", icon: "demo", permission: "demo:view" },
     ],
   },
 ];
 
 const hiddenPageTitles: NavigationItem[] = [
+  { title: "New Import", href: "/imports/new", icon: "newPurchase" },
+  { title: "Import List", href: "/imports", icon: "purchaseList" },
+  { title: "USD Payables", href: "/imports/payables", icon: "supplierPayments" },
+  { title: "Imports", href: "/purchases/imports", icon: "upload" },
   { title: "Agents", href: "/sales/agents", icon: "customers" },
   { title: "Agent Credit", href: "/sales/agent-credit", icon: "customerCredit" },
-  { title: "Imports", href: "/purchases/imports", icon: "upload" },
-  { title: "AI Insights", href: "/assistant", icon: "assistant", permission: "ai:view" },
-  { title: "Demo & Quotation", href: "/demo", icon: "demo", permission: "demo:view" },
+  { title: "Collections", href: "/sales/agent-collections", icon: "customerPayments" },
   { title: "Alert Records", href: "/inventory/alert-records", icon: "alertRecords" },
   { title: "Stock Movements", href: "/inventory/stock-movements", icon: "stockMovements" },
   { title: "Customer Payments", href: "/sales/customer-payments", icon: "customerPayments" },
@@ -365,9 +170,8 @@ const hiddenPageTitles: NavigationItem[] = [
   { title: "Backups", href: "/admin/backups", icon: "backups", permission: "backups:manage" },
   { title: "Setup Home", href: "/setup", icon: "dashboard", permission: "settings:manage" },
   { title: "Settings", href: "/admin/settings", icon: "settings", permission: "settings:manage" },
+  { title: "Demo & Quotation", href: "/demo", icon: "demo", permission: "demo:view" },
 ];
-
-const hiddenGroupPrefixes: ReadonlyArray<{ groupTitle: string; href: string }> = [];
 
 function itemAllowed(
   itemRoles: AppRole[] | undefined,
@@ -420,9 +224,5 @@ export function getOpenGroupForPath(pathname: string, role: AppRole, permissions
     return match.title;
   }
 
-  const hiddenMatch = hiddenGroupPrefixes.find(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-  );
-
-  return hiddenMatch?.groupTitle ?? null;
+  return null;
 }

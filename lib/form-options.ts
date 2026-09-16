@@ -238,11 +238,18 @@ export async function getPurchaseFormOptions(): Promise<PurchaseFormOptions> {
     },
   });
 
+  const latestUsdRate = await prisma.exchangeRateHistory.findFirst({
+    where: { currency: "USD" },
+    orderBy: { recordedAt: "desc" },
+    select: { rate: true },
+  });
+
   return {
     locations: scope.locations,
     suppliers,
     products,
     accounts: rawAccounts.map((account) => toFinanceAccountOption(account)),
+    latestUsdRate: latestUsdRate ? toNumber(latestUsdRate.rate) : 0,
   };
 }
 
@@ -375,8 +382,18 @@ export async function getSaleFormOptions(): Promise<SaleFormOptions> {
 
   const customers = await prisma.customer.findMany({
     where: { isActive: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, businessName: true },
+    orderBy: [{ partyType: "desc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      businessName: true,
+      partyType: true,
+      creditLimit: true,
+      sales: {
+        where: { status: "COMPLETED" },
+        select: { amountDue: true },
+      },
+    },
   });
 
   const products = await getActiveProductOptions();
@@ -411,7 +428,14 @@ export async function getSaleFormOptions(): Promise<SaleFormOptions> {
 
   return {
     locations: scope.locations,
-    customers,
+    customers: customers.map((customer) => ({
+      id: customer.id,
+      name: customer.name,
+      businessName: customer.businessName,
+      partyType: customer.partyType === "AGENT" ? "AGENT" : "CUSTOMER",
+      creditLimit: toNumber(customer.creditLimit),
+      creditBalance: customer.sales.reduce((sum, sale) => sum + toNumber(sale.amountDue), 0),
+    })),
     products: products.filter((product) => inStockProductIds.has(product.id)),
     locationStock,
     accounts: rawAccounts.map((account) => toFinanceAccountOption(account)),
@@ -444,6 +468,7 @@ export async function getTransferFormOptions(): Promise<TransferFormOptions> {
 
 export async function getCustomerPaymentFormOptions(
   customerId?: string,
+  partyType?: "CUSTOMER" | "AGENT",
 ): Promise<CustomerPaymentFormOptions> {
   const scope = await getCurrentLocationScope();
   const activeLocationId = scope.activeLocationId;
@@ -451,6 +476,7 @@ export async function getCustomerPaymentFormOptions(
   const customers = await prisma.customer.findMany({
     where: {
       isActive: true,
+      ...(partyType ? { partyType } : {}),
       sales: {
         some: {
           amountDue: { gt: 0 },
@@ -486,6 +512,7 @@ export async function getCustomerPaymentFormOptions(
       amountDue: { gt: 0 },
       customerId: { not: null },
       ...(customerId ? { customerId } : {}),
+      ...(partyType ? { customer: { partyType } } : {}),
     },
     orderBy: [{ soldAt: "asc" }, { createdAt: "asc" }],
     select: {

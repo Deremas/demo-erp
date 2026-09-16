@@ -73,6 +73,8 @@ export async function updateCustomerAction(
           id: true,
           name: true,
           businessName: true,
+          partyType: true,
+          creditLimit: true,
         },
       });
 
@@ -220,6 +222,8 @@ export async function createCustomerAction(
           id: true,
           name: true,
           businessName: true,
+          partyType: true,
+          creditLimit: true,
         },
       });
 

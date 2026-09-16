@@ -58,6 +58,7 @@ export type TableFilterField = {
   placeholder?: string;
   options?: TableFilterOption[];
   defaultValue?: string;
+  advanced?: boolean;
 };
 
 export type TablePageConfig = {

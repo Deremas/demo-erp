@@ -15,7 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type CustomerFormProps = {
-  onSuccess?: (customer: { id: string; name: string; businessName?: string | null }) => void;
+  onSuccess?: (customer: {
+    id: string;
+    name: string;
+    businessName?: string | null;
+    partyType?: "CUSTOMER" | "AGENT";
+    creditLimit?: number;
+  }) => void;
   onCancel?: () => void;
   submitLabel?: string;
   refreshAfterSuccess?: boolean;

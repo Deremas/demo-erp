@@ -10,6 +10,8 @@ import { toast } from "sonner";
 
 
 import { CustomerForm } from "@/components/forms/customer-form";
+import { CreditLimitNotice } from "@/components/sales/credit-limit-notice";
+import { evaluateCreditLimit, salePartyLabel } from "@/lib/credit-limit";
 import {
   Dialog,
   DialogContent,
@@ -176,6 +178,7 @@ export function SaleForm({
     name: "items",
   });
   const locationId = form.watch("locationId");
+  const customerId = form.watch("customerId");
   const paymentMethod = form.watch("paymentMethod");
   const settlementMode = form.watch("settlementMode");
   const rawAmountPaid = Number(form.watch("amountPaid") || 0);
@@ -212,6 +215,13 @@ export function SaleForm({
           : Math.min(rawAmountPaid, netTotal);
 
   const amountDue = Math.max(netTotal - effectiveAmountPaid, 0);
+  const selectedParty = customers.find((customer) => customer.id === customerId);
+  const creditStatus = evaluateCreditLimit({
+    creditLimit: Number(selectedParty?.creditLimit || 0),
+    outstanding: Number(selectedParty?.creditBalance || 0),
+    additionalDue: amountDue,
+  });
+  const creditBlocked = amountDue > 0.01 && !creditStatus.allowed;
 
 
 
@@ -394,7 +404,7 @@ export function SaleForm({
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Customer</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Customer / Agent</Label>
                 <button
                   type="button"
                   onClick={() => setIsCustomerDialogOpen(true)}
@@ -407,7 +417,7 @@ export function SaleForm({
                 <option value="">Walk-in Customer</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {formatCustomerName(customer)}
+                    {salePartyLabel(customer)}
                   </option>
                 ))}
               </Select>
@@ -654,6 +664,8 @@ export function SaleForm({
                   </div>
                 </div>
 
+                <CreditLimitNotice party={selectedParty} additionalDue={amountDue} />
+
                 {paymentMethod === "MIXED" && (
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center justify-between px-1">
@@ -804,7 +816,7 @@ export function SaleForm({
               <div className="space-y-3">
                 <Button 
                   type="submit" 
-                  disabled={isPending} 
+                  disabled={isPending || creditBlocked} 
                   className="h-14 w-full rounded-2xl bg-sky-400 font-black uppercase tracking-widest text-white shadow-lg shadow-sky-200 transition-all hover:bg-sky-500 hover:scale-[1.01] active:scale-[0.99]"
                 >
                   {isPending ? "Processing..." : `${initialData?.id ? "Update Sale" : "Complete"} ${formatCurrency(netTotal)}`}
@@ -831,7 +843,12 @@ export function SaleForm({
           </DialogHeader>
           <CustomerForm 
              onSuccess={(newCustomer) => {
-                setCustomers((prev) => [...prev, newCustomer]);
+                setCustomers((prev) => [...prev, {
+                  ...newCustomer,
+                  partyType: newCustomer.partyType ?? "CUSTOMER",
+                  creditLimit: Number(newCustomer.creditLimit || 0),
+                  creditBalance: 0,
+                }]);
                 form.setValue("customerId", newCustomer.id, { shouldDirty: true });
                 setIsCustomerDialogOpen(false);
              }}

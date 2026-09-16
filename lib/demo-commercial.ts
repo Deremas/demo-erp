@@ -9,7 +9,7 @@ export const demoWalkthrough = [
     step: 2,
     title: "Receive an import or local purchase",
     description: "Post a supplier purchase into the warehouse, including USD import tracking when needed.",
-    href: "/purchases/imports",
+    href: "/imports/new",
   },
   {
     step: 3,
@@ -90,7 +90,7 @@ export const requirementCoverage = [
   {
     requirement: "Imports",
     capability: "Import purchases with USD invoice tracking, exchange rate, and warehouse receipt.",
-    href: "/purchases/imports",
+    href: "/imports/new",
   },
   {
     requirement: "Supplier balances",
