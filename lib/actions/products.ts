@@ -42,24 +42,6 @@ async function upsertCategoryByName(
   });
 }
 
-async function upsertBrandByName(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  name: string | undefined,
-) {
-  const normalized = normalizeOptionalString(name);
-
-  if (!normalized) {
-    return null;
-  }
-
-  return tx.brand.upsert({
-    where: { name: normalized },
-    update: { isActive: true },
-    create: { name: normalized, isActive: true },
-    select: { id: true, name: true },
-  });
-}
-
 async function upsertUnitByName(
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
   name: string,
@@ -171,9 +153,6 @@ export async function createProductAction(
       const category = await tx.category.findUnique({ where: { id: parsed.data.categoryId }, select: { id: true, name: true } });
       if (!category) throw new Error("Selected category does not exist.");
 
-      const brand = parsed.data.brandId ? await tx.brand.findUnique({ where: { id: parsed.data.brandId }, select: { id: true, name: true } }) : null;
-      const company = parsed.data.companyId ? await tx.company.findUnique({ where: { id: parsed.data.companyId }, select: { id: true, name: true } }) : null;
-      
       const unit = await tx.unit.findUnique({ where: { id: parsed.data.unitId }, select: { id: true, name: true } });
       if (!unit) throw new Error("Selected unit does not exist.");
 
@@ -182,8 +161,6 @@ export async function createProductAction(
           name,
           sku: finalSku!,
           ...(category ? { categoryId: category.id } : {}),
-          ...(brand ? { brandId: brand.id } : {}),
-          ...(company ? { companyId: company.id } : {}),
           unitId: unit.id,
           buyingPrice: parsed.data.buyingPrice ?? 0,
           sellingPrice: parsed.data.sellingPrice ?? 0,
@@ -213,7 +190,6 @@ export async function createProductAction(
           buyingPrice: product.buyingPrice,
           sellingPrice: product.sellingPrice,
           category: category?.name ?? null,
-          brand: brand?.name ?? null,
         },
       });
 
@@ -302,9 +278,6 @@ export async function updateProductAction(
       const category = await tx.category.findUnique({ where: { id: parsed.data.categoryId }, select: { id: true, name: true } });
       if (!category) throw new Error("Selected category does not exist.");
 
-      const brand = parsed.data.brandId ? await tx.brand.findUnique({ where: { id: parsed.data.brandId }, select: { id: true, name: true } }) : null;
-      const company = parsed.data.companyId ? await tx.company.findUnique({ where: { id: parsed.data.companyId }, select: { id: true, name: true } }) : null;
-      
       const unit = await tx.unit.findUnique({ where: { id: parsed.data.unitId }, select: { id: true, name: true } });
       if (!unit) throw new Error("Selected unit does not exist.");
 
@@ -318,8 +291,6 @@ export async function updateProductAction(
           name,
           ...(finalSku ? { sku: finalSku } : {}),
           categoryId: category?.id ?? null,
-          brandId: brand?.id ?? null,
-          companyId: company?.id ?? null,
           unitId: unit.id,
           buyingPrice: parsed.data.buyingPrice ?? 0,
           sellingPrice: parsed.data.sellingPrice ?? 0,
@@ -348,7 +319,6 @@ export async function updateProductAction(
           buyingPrice: updated.buyingPrice,
           sellingPrice: updated.sellingPrice,
           category: category?.name ?? null,
-          brand: brand?.name ?? null,
         },
       });
 
@@ -382,7 +352,6 @@ export type BulkProductInput = {
   unit?: string;
   minimumStockAlert?: number;
   categoryName?: string;
-  brandName?: string;
   defaultBuyingPrice?: number;
   defaultSellingPrice?: number;
   description?: string;
@@ -438,9 +407,8 @@ export async function createBulkProductsAction(
         const sku = await generateUniqueItemSku(tx, name);
         const minimumStockAlert = item.minimumStockAlert ?? 0;
         const description = normalizeOptionalString(item.description);
-        const [category, brand] = await Promise.all([
+        const [category] = await Promise.all([
           upsertCategoryByName(tx, item.categoryName),
-          upsertBrandByName(tx, item.brandName),
         ]);
         const unit = await tx.unit.upsert({
           where: { name: item.unit?.trim() || "bottle" },
@@ -454,7 +422,6 @@ export async function createBulkProductsAction(
             name,
             sku,
             ...(category ? { categoryId: category.id } : {}),
-            ...(brand ? { brandId: brand.id } : {}),
             minimumStockAlert,
             unitId: unit.id,
             buyingPrice: item.defaultBuyingPrice ?? 0,
@@ -480,7 +447,6 @@ export async function createBulkProductsAction(
             name: product.name,
             minimumStockAlert: product.minimumStockAlert,
             category: category?.name ?? null,
-            brand: brand?.name ?? null,
             buyingPrice: product.buyingPrice,
             sellingPrice: product.sellingPrice,
           },

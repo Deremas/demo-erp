@@ -56,8 +56,6 @@ export async function applyPriceAdjustmentAction(formData: FormData) {
   const locationIds = getValues(formData, "locationIds");
   const productIds = getValues(formData, "productIds");
   const categoryIds = getValues(formData, "categoryIds");
-  const brandIds = getValues(formData, "brandIds");
-  const companyIds = getValues(formData, "companyIds");
   const mode = String(formData.get("mode") || "PERCENTAGE_INCREASE");
   const amount = Number(formData.get("amount") || 0);
   const selectedRows = getSelectedRows(formData);
@@ -89,8 +87,6 @@ export async function applyPriceAdjustmentAction(formData: FormData) {
               ? { id: { in: productIds } }
               : {}),
           ...(categoryIds.length ? { categoryId: { in: categoryIds } } : {}),
-          ...(brandIds.length ? { brandId: { in: brandIds } } : {}),
-          ...(companyIds.length ? { companyId: { in: companyIds } } : {}),
         },
         select: {
           id: true,

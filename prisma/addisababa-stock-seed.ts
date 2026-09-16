@@ -2512,8 +2512,6 @@ async function main() {
       update: {
         name: row.description,
         categoryId: defaultCategory.id,
-        companyId: null,
-        brandId: null,
         unitId: defaultUnit.id,
         unitId: null,
         isActive: true,
@@ -2524,8 +2522,6 @@ async function main() {
         categoryId: defaultCategory.id,
         unitId: defaultUnit.id,
         unitId: null,
-        companyId: null,
-        brandId: null,
         description: null,
         isActive: true,
       },

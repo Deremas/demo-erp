@@ -83,7 +83,7 @@ function PurchaseItemPicker({
     const query = searchQuery.trim().toLowerCase();
     if (!query) return products;
     return products.filter((p) => {
-      const searchStr = `${p.name} ${p.sku || ""} ${p.companyName || ""}`.toLowerCase();
+      const searchStr = `${p.name} ${p.sku || ""}`.toLowerCase();
       return searchStr.includes(query);
     });
   }, [searchQuery, products]);
@@ -159,11 +159,6 @@ function PurchaseItemPicker({
                   <div className="flex min-w-0 items-center justify-between gap-3">
                     <span className="whitespace-normal leading-snug">
                       {product.name}
-                      {product.companyName && (
-                        <span className="ml-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                          ({product.companyName})
-                        </span>
-                      )}
                     </span>
 
                     {disabled ? (

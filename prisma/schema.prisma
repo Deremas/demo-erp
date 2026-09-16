@@ -206,36 +206,11 @@ model Category {
   @@map("categories")
 }
 
-model Brand {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-
-  @@map("brands")
-}
-
-model Company {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-
-  @@map("companies")
-}
-
 model Product {
   id                  String                   @id @default(cuid())
   name                String
   sku                 String                   @unique
   categoryId          String?
-  brandId             String?
   description         String?
   unitId              String                   @default("unit_bottle")
   buyingPrice         Decimal                  @default(0) @db.Decimal(18, 2)
@@ -244,10 +219,7 @@ model Product {
   isActive            Boolean                  @default(true)
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
-  companyId           String?
   category            Category?                @relation(fields: [categoryId], references: [id])
-  brand               Brand?                   @relation(fields: [brandId], references: [id])
-  company             Company?                 @relation(fields: [companyId], references: [id])
   unit                Unit                     @relation(fields: [unitId], references: [id])
   purchaseItems       PurchaseItem[]
   saleItems           SaleItem[]
@@ -262,8 +234,6 @@ model Product {
 
   @@index([name])
   @@index([categoryId])
-  @@index([brandId])
-  @@index([companyId])
   @@map("products")
 }
 

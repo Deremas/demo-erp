@@ -14,7 +14,6 @@ type TablePageFilters = {
   locationId?: string;
   supplierId?: string;
   productId?: string;
-  brandId?: string;
   financeAccountId?: string;
   categoryId?: string;
   paymentStatus?: string;
@@ -25,7 +24,6 @@ type TablePageFilters = {
   paymentMethod?: string;
   dateFrom?: string;
   dateTo?: string;
-  companyId?: string;
 };
 
 function normalizeFilters(filters?: TablePageFilters | string): TablePageFilters {
@@ -73,7 +71,7 @@ function getDateRangeFilter(filters: TablePageFilters | string) {
 
 export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
   filters = normalizeFilters(filters);
-  const { locationId, supplierId, productId, categoryId, brandId, companyId, search, status, paymentStatus, type } = filters;
+  const { locationId, supplierId, productId, categoryId, search, status, paymentStatus, type } = filters;
   const purchasedAt = getDateRangeFilter(filters);
 
   const locationIds = parseFilterList(locationId);
@@ -89,15 +87,13 @@ export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
         : {}),
     status: "POSTED",
     ...(type === "IMPORT" ? { trackInUsd: true } : {}),
-    ...(productId || categoryId || brandId || companyId
+    ...(productId || categoryId
       ? {
           items: {
             some: {
               product: {
                 ...(productId ? { id: idListWhere(productId) } : {}),
                 ...(categoryId ? { categoryId: idListWhere(categoryId) } : {}),
-                ...(brandId ? { brandId: idListWhere(brandId) } : {}),
-                ...(companyId ? { companyId: idListWhere(companyId) } : {}),
               },
             },
           },
@@ -977,7 +973,7 @@ export async function getExpenseCategoryRows(): Promise<SimpleRow[]> {
   }));
 }
 export async function getPurchasedItemRows(filters: any): Promise<SimpleRow[]> {
-  const { locationId, supplierId, productId, categoryId, brandId, companyId, search, dateFrom, dateTo } = filters;
+  const { locationId, supplierId, productId, categoryId, search, dateFrom, dateTo } = filters;
   const locationIds = parseFilterList(locationId);
   const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
 
@@ -995,19 +991,16 @@ export async function getPurchasedItemRows(filters: any): Promise<SimpleRow[]> {
           }
         : {}),
     },
-    ...(productId || categoryId || brandId || companyId || search
+    ...(productId || categoryId || search
       ? {
             product: {
               ...(productId ? { id: idListWhere(productId) } : {}),
               ...(categoryId ? { categoryId: idListWhere(categoryId) } : {}),
-              ...(brandId ? { brandId: idListWhere(brandId) } : {}),
-              ...(companyId ? { companyId: idListWhere(companyId) } : {}),
             ...(search
               ? {
                   OR: [
                     { name: { contains: search, mode: "insensitive" } },
                     { category: { name: { contains: search, mode: "insensitive" } } },
-                    { brand: { name: { contains: search, mode: "insensitive" } } },
                   ],
                 }
               : {}),
@@ -1024,7 +1017,6 @@ export async function getPurchasedItemRows(filters: any): Promise<SimpleRow[]> {
         select: { 
           name: true,
           unit: { select: { name: true } },
-          company: { select: { name: true } },
         } 
       },
       purchase: {
@@ -1055,7 +1047,6 @@ export async function getPurchasedItemRows(filters: any): Promise<SimpleRow[]> {
       purchaseNumber: item.purchase.purchaseNumber,
       location: item.purchase.location.name,
       product: item.product.name,
-      company: item.product.company?.name ?? "-",
       quantity: qty,
       supplier: item.purchase.supplier?.name ?? "No supplier",
       unitPrice: `ETB ${unitPriceValue.toLocaleString()} / ${unitName}`,

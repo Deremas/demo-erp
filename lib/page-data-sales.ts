@@ -11,8 +11,6 @@ type SalesFilters = {
   locationId?: string;
   productId?: string;
   categoryId?: string;
-  brandId?: string;
-  companyId?: string;
   dateFrom?: string;
   dateTo?: string;
   type?: string;
@@ -106,8 +104,6 @@ export async function getSalesRows(filters: SalesFilters = {}) {
     customerId,
     productId,
     categoryId,
-    brandId,
-    companyId,
     type,
     search,
     status,
@@ -120,8 +116,6 @@ export async function getSalesRows(filters: SalesFilters = {}) {
   const customerIds = parseFilterList(customerId);
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
 
   const where: any = {
     ...(customerIds ? { customerId: idListWhere(customerIds) } : {}),
@@ -133,15 +127,13 @@ export async function getSalesRows(filters: SalesFilters = {}) {
     ...(type === "WALK_IN" ? { customerId: null } : {}),
     ...(paymentStatus ? { paymentStatus: paymentStatus as any } : {}),
     ...(paymentMethod ? { paymentMethod: paymentMethod as any } : {}),
-    ...(productIds || categoryIds || brandIds || companyIds
+    ...(productIds || categoryIds
       ? {
           items: {
             some: {
               product: {
                 ...(productIds ? { id: idListWhere(productIds) } : {}),
                 ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-                ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-                ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
               },
             },
           },
@@ -230,16 +222,14 @@ export async function getSalesRows(filters: SalesFilters = {}) {
   })) satisfies SimpleRow[];
 }
 
-export async function getSoldItemRows(filters: SalesFilters & { categoryId?: string; brandId?: string; companyId?: string } = {}) {
-  const { locationId, customerId, productId, categoryId, brandId, companyId, search } = filters;
+export async function getSoldItemRows(filters: SalesFilters = {}) {
+  const { locationId, customerId, productId, categoryId, search } = filters;
   const soldAt = getSoldAtRangeFilter(filters);
 
   const locationIds = parseFilterList(locationId);
   const customerIds = parseFilterList(customerId);
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
 
   const where: any = {
     ...(locationIds || customerIds || soldAt
@@ -252,19 +242,16 @@ export async function getSoldItemRows(filters: SalesFilters & { categoryId?: str
           },
         }
       : { sale: { status: "COMPLETED" } }),
-    ...(productIds || categoryIds || brandIds || companyIds || search
+    ...(productIds || categoryIds || search
       ? {
           product: {
             ...(productIds ? { id: idListWhere(productIds) } : {}),
             ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-            ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-            ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
             ...(search
               ? {
                   OR: [
                     { name: { contains: search, mode: "insensitive" } },
                     { category: { name: { contains: search, mode: "insensitive" } } },
-                    { brand: { name: { contains: search, mode: "insensitive" } } },
                   ],
                 }
               : {}),
@@ -281,7 +268,6 @@ export async function getSoldItemRows(filters: SalesFilters & { categoryId?: str
         select: { 
           name: true, 
           unit: { select: { name: true } },
-          company: { select: { name: true } },
         } 
       },
       sale: {
@@ -313,7 +299,6 @@ export async function getSoldItemRows(filters: SalesFilters & { categoryId?: str
       saleNumber: saleItem.sale.saleNumber,
       location: saleItem.sale.location.name,
       product: saleItem.product.name,
-      company: saleItem.product.company?.name ?? "-",
       quantity: toNumber(saleItem.quantity),
       customer: saleItem.sale.customer ? formatCustomerName(saleItem.sale.customer) : "Walk-in",
       unitPrice: `ETB ${unitPriceValue.toLocaleString()} / ${unitName}`,
@@ -326,14 +311,12 @@ export async function getSoldItemRows(filters: SalesFilters & { categoryId?: str
 }
 
 export async function getSalesProfitRows(filters: SalesFilters = {}) {
-  const { locationId, productId, categoryId, brandId, companyId, search } = filters;
+  const { locationId, productId, categoryId, search } = filters;
   const soldAt = getSoldAtRangeFilter(filters);
 
   const locationIds = parseFilterList(locationId);
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
 
   const where: any = {
     sale: {
@@ -349,13 +332,11 @@ export async function getSalesProfitRows(filters: SalesFilters = {}) {
           }
         : {}),
     },
-    ...(productIds || categoryIds || brandIds || companyIds || search
+    ...(productIds || categoryIds || search
       ? {
           product: {
             ...(productIds ? { id: idListWhere(productIds) } : {}),
             ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-            ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-            ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
             ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
           },
         }
@@ -366,7 +347,7 @@ export async function getSalesProfitRows(filters: SalesFilters = {}) {
     where,
     orderBy: { createdAt: "desc" },
     include: {
-      product: { select: { name: true, buyingPrice: true, company: { select: { name: true } } } },
+      product: { select: { name: true, buyingPrice: true } },
       sale: {
         select: {
           saleNumber: true,
@@ -388,7 +369,6 @@ export async function getSalesProfitRows(filters: SalesFilters = {}) {
       saleNumber: saleItem.sale.saleNumber,
       location: saleItem.sale.location.name,
       product: saleItem.product.name,
-      company: saleItem.product.company?.name ?? "-",
       quantity: saleItem.quantity,
       saleTotal,
       costTotal,
@@ -610,7 +590,7 @@ export async function getCustomerPaymentRows(filters: SalesFilters = {}) {
 }
 
 export async function getDiscountedItemRows(filters: SalesFilters = {}) {
-  const { locationId, customerId, productId, categoryId, brandId, companyId, search } = filters;
+  const { locationId, customerId, productId, categoryId, search } = filters;
   const soldAt = getSoldAtRangeFilter(filters);
 
   const locationIds = parseFilterList(locationId);
@@ -625,8 +605,6 @@ export async function getDiscountedItemRows(filters: SalesFilters = {}) {
     discount: { gt: 0 },
     ...(productId ? { productId: idListWhere(parseFilterList(productId)) } : {}),
     ...(categoryId ? { product: { categoryId: idListWhere(parseFilterList(categoryId)) } } : {}),
-    ...(brandId ? { product: { brandId: idListWhere(parseFilterList(brandId)) } } : {}),
-    ...(companyId ? { product: { companyId: idListWhere(parseFilterList(companyId)) } } : {}),
     ...(search
       ? {
           OR: [
@@ -644,7 +622,6 @@ export async function getDiscountedItemRows(filters: SalesFilters = {}) {
       product: {
         include: {
           category: { select: { name: true } },
-          company: { select: { name: true } },
         },
       },
       sale: {
@@ -662,7 +639,6 @@ export async function getDiscountedItemRows(filters: SalesFilters = {}) {
     saleNumber: item.sale.saleNumber,
     product: item.product.name,
     category: item.product.category?.name ?? "General",
-    company: item.product.company?.name ?? "Unknown",
     customer: item.sale.customer ? formatCustomerName(item.sale.customer) : "Walk-in",
     quantity: item.quantity,
     unitPrice: toNumber(item.unitPrice),

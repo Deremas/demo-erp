@@ -9,7 +9,7 @@ export const auditCoverageChecks = [
   { area: "Supplier Payments", entityTypes: ["SupplierPayment"], actions: ["SUPPLIER_PAYMENT_CREATE"], route: "/purchases/supplier-payments" },
   { area: "Stock Transfers", entityTypes: ["Transfer"], actions: ["TRANSFER_CREATE", "TRANSFER_UPDATE", "TRANSFER_SEND", "TRANSFER_RECEIVE"], route: "/inventory/transfers" },
   { area: "Inventory Items", entityTypes: ["Product"], actions: ["PRODUCT_CREATE", "PRODUCT_UPDATE", "PRODUCT_DELETE"], route: "/inventory/products" },
-  { area: "Inventory Masters", entityTypes: ["Category", "Brand", "Company", "Unit"], actions: ["PRODUCT_CREATE", "PRODUCT_UPDATE", "PRODUCT_DELETE"], route: "/inventory/categories" },
+  { area: "Inventory Masters", entityTypes: ["Category", "Unit"], actions: ["PRODUCT_CREATE", "PRODUCT_UPDATE", "PRODUCT_DELETE"], route: "/inventory/categories" },
   { area: "Expenses", entityTypes: ["Expense"], actions: ["EXPENSE_CREATE", "EXPENSE_UPDATE", "EXPENSE_DELETE"], route: "/finance/expenses" },
   { area: "Finance Accounts", entityTypes: ["FinanceAccount"], actions: ["ACCOUNT_CREATE", "ACCOUNT_UPDATE", "ACCOUNT_DELETE"], route: "/finance/accounts" },
   { area: "Cash Transfers", entityTypes: ["CashTransfer"], actions: ["CASH_TRANSFER_CREATE"], route: "/finance/cash-transfers" },

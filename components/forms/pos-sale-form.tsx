@@ -515,7 +515,6 @@ export function PosSaleForm({
                   <thead className="sticky top-0 z-10 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 shadow-sm outline outline-1 outline-slate-100">
                     <tr>
                       <th className="px-4 py-3 bg-slate-50">Product</th>
-                      <th className="px-4 py-3 bg-slate-50">Brand Owner</th>
                       <th className="px-4 py-3 bg-slate-50">Available Stock</th>
                       <th className="px-4 py-3 bg-slate-50">Qty</th>
                       <th className="px-4 py-3 bg-slate-50">Unit Price</th>
@@ -541,9 +540,6 @@ export function PosSaleForm({
                             <p className="mt-1 text-[11px] font-medium text-slate-400">
                               Stock {product.availableQty} {product.unitName}
                             </p>
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 font-medium">
-                            {product.companyName ?? "-"}
                           </td>
                           <td className="px-4 py-3 font-semibold text-slate-700">
                             {product.availableQty} {product.unitName}

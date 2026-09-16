@@ -4,13 +4,11 @@ import { useRouter } from "next/navigation";
 
 import { DeleteConfirmDialog } from "@/components/tables/delete-confirm-dialog";
 import {
-  deleteBrandAction,
   deleteCategoryAction,
-  deleteCompanyAction,
   deleteUnitAction,
 } from "@/lib/actions/inventory-master";
 
-type MasterDeleteType = "category" | "brand" | "company" | "unit";
+type MasterDeleteType = "category" | "unit";
 
 type InventoryMasterDeleteDialogProps = {
   id: string;
@@ -25,18 +23,6 @@ const deleteConfig = {
     label: "category",
     blockedReason: "products",
     action: deleteCategoryAction,
-  },
-  brand: {
-    title: "Delete brand?",
-    label: "brand",
-    blockedReason: "products",
-    action: deleteBrandAction,
-  },
-  company: {
-    title: "Delete company?",
-    label: "company",
-    blockedReason: "products",
-    action: deleteCompanyAction,
   },
   unit: {
     title: "Delete unit?",

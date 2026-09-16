@@ -17,8 +17,6 @@ export const productSchema = z.object({
     .int("Low stock alert must be a whole number.")
     .min(0, "Low stock alert must be zero or more."),
   categoryId: z.string().min(1, "Category is required."),
-  brandId: z.string().optional().or(z.literal("")),
-  companyId: z.string().optional().or(z.literal("")),
   unitId: z.string().min(1, "Unit is required."),
   buyingPrice: z.coerce.number().min(0, "Buying price must be zero or more.").optional().catch(0),
   sellingPrice: z.coerce.number().min(0, "Selling price must be zero or more.").optional().catch(0),

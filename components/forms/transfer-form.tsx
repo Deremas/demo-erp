@@ -293,7 +293,7 @@ export function TransferForm({ options, initialProductId, initialSourceLocationI
                           <option value="">Select item</option>
                           {availableProducts.map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.name} {p.companyName ? `(${p.companyName})` : ""}
+                              {p.name}
                             </option>
                           ))}
                         </Select>

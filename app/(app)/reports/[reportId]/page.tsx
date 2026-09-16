@@ -28,8 +28,6 @@ function readFilters(params: RouteSearchParams | undefined): ReportFilters {
     "paymentStatus",
     "productId",
     "categoryId",
-    "brandId",
-    "companyId",
     "customerId",
     "supplierId",
     "userId",

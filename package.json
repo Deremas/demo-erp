@@ -19,7 +19,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "node --import tsx prisma/seed.ts",
     "db:seed:customers": "node --import tsx prisma/customer-seed.ts",
-    "db:seed:company-items": "node --import tsx prisma/company-item-seed.ts",
+    "db:seed:demo-ops": "node --import tsx prisma/demo-operations-seed.ts",
     "db:seed:addis-stock": "node --import tsx prisma/addisababa-stock-seed.ts",
     "db:seed:shops-stock": "node --import tsx prisma/bole-sabon-shala-summit-BS-stock.ts",
     "db:seed:users": "node --import tsx prisma/user-role-seed.ts",

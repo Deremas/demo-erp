@@ -173,7 +173,6 @@ export default async function StockDetailPage({ searchParams }: StockDetailPageP
         <CardContent className="grid gap-0 p-0 sm:grid-cols-2 xl:grid-cols-4">
           {[
             ["Category", stock.category],
-            ["Brand", stock.brand],
             ["Unit Buy", formatCurrency(stock.buyingPrice)],
             ["Unit Sell", formatCurrency(stock.sellingPrice)],
             ["Low Stock Alert", `${stock.minimumStockAlert} ${stock.unit}`],

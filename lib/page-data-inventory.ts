@@ -9,8 +9,6 @@ type TablePageFilters = {
   locationId?: string;
   productId?: string;
   categoryId?: string;
-  brandId?: string;
-  companyId?: string;
   status?: string;
   search?: string;
   lowStockOnly?: string;
@@ -33,24 +31,18 @@ function idListWhere(values: string[] | null): any {
 }
 
 export async function getProductRows(filters: TablePageFilters | string = {}) {
-  const { locationId, categoryId, brandId, status, search, companyId } = normalizeFilters(filters);
+  const { locationId, categoryId, status, search } = normalizeFilters(filters);
   const locationIds = parseFilterList(locationId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
   const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
   const productWhere: any = {
     ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-    ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-    ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
     ...(status ? { isActive: status === "ACTIVE" } : {}),
     ...(search
       ? {
           OR: [
             { name: { contains: search, mode: "insensitive" } },
             { category: { name: { contains: search, mode: "insensitive" } } },
-            { brand: { name: { contains: search, mode: "insensitive" } } },
-            { company: { name: { contains: search, mode: "insensitive" } } },
             { sku: { contains: search, mode: "insensitive" } },
           ],
         }
@@ -67,8 +59,6 @@ export async function getProductRows(filters: TablePageFilters | string = {}) {
           name: true,
           sku: true,
           category: { select: { name: true } },
-          brand: { select: { name: true } },
-          company: { select: { name: true } },
           unit: { select: { name: true } },
           buyingPrice: true,
           sellingPrice: true,
@@ -89,8 +79,6 @@ export async function getProductRows(filters: TablePageFilters | string = {}) {
       sku: product.sku,
       name: product.name,
       category: product.category?.name ?? "-",
-      brand: product.brand?.name ?? "-",
-      company: product.company?.name ?? "-",
       unit: product.unit.name,
       preferredPackage: "-",
       buyingPrice: toNumber(product.buyingPrice),
@@ -117,8 +105,6 @@ export async function getProductRows(filters: TablePageFilters | string = {}) {
         sku: "-",
         name: product.name,
         category: "-",
-        brand: "-",
-        company: "-",
         currentStock: 0,
         minimumStockAlert: 0,
         status: "ACTIVE",
@@ -132,27 +118,21 @@ export async function getProductRows(filters: TablePageFilters | string = {}) {
 }
 
 export async function getStockOverviewRows(filters: TablePageFilters | string = {}) {
-  const { locationId, productId, categoryId, brandId, companyId, search, lowStockOnly } = normalizeFilters(filters);
+  const { locationId, productId, categoryId, search, lowStockOnly } = normalizeFilters(filters);
   const summary = await getStockSummaryRows(locationId);
   const q = search?.toLowerCase();
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
 
   return summary
     .filter((row) => (categoryIds ? categoryIds.includes(row.categoryId ?? "") : true))
-    .filter((row) => (brandIds ? brandIds.includes(row.brandId ?? "") : true))
-    .filter((row) => (companyIds ? companyIds.includes(row.companyId ?? "") : true))
     .filter((row) => (productIds ? productIds.includes(row.productId) : true))
     .filter((row) => (lowStockOnly === "1" ? row.quantity <= row.minimumStockAlert : true))
     .filter((row) =>
       q
         ? row.product.toLowerCase().includes(q) ||
           row.sku.toLowerCase().includes(q) ||
-          row.category.toLowerCase().includes(q) ||
-          row.brand.toLowerCase().includes(q) ||
-          row.company.toLowerCase().includes(q)
+          row.category.toLowerCase().includes(q)
         : true,
     )
     .map((row) => {
@@ -166,8 +146,6 @@ export async function getStockOverviewRows(filters: TablePageFilters | string = 
         product: row.product,
         name: row.product,
         category: row.category,
-        brand: row.brand,
-        company: row.company,
         stockBreakdown: stockBreakdown(row.quantity, row.unit),
         baseQuantity: row.quantity,
         currentStock: row.quantity,
@@ -244,7 +222,7 @@ export async function getAlertRecordRows(filters?: TablePageFilters | string) {
     orderBy: { evaluatedAt: "desc" },
     include: {
       location: { select: { name: true } },
-      product: { select: { name: true, company: { select: { name: true } } } },
+      product: { select: { name: true } },
     },
   });
 
@@ -252,7 +230,6 @@ export async function getAlertRecordRows(filters?: TablePageFilters | string) {
     id: row.id,
     location: row.location.name,
     product: row.product.name,
-    company: row.product.company?.name ?? "-",
     threshold: row.threshold,
     currentQty: row.currentQty,
     evaluatedAt: formatDateTime(row.evaluatedAt),
@@ -260,12 +237,10 @@ export async function getAlertRecordRows(filters?: TablePageFilters | string) {
 }
 
 export async function getStockMovementRows(filters: TablePageFilters | string = {}) {
-  const { locationId, productId, categoryId, brandId, companyId, search, type, dateFrom, dateTo } = normalizeFilters(filters);
+  const { locationId, productId, categoryId, search, type, dateFrom, dateTo } = normalizeFilters(filters);
   const locationIds = parseFilterList(locationId);
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
   const movementTypes = parseFilterList(type);
   const where: any = {
     ...(locationIds
@@ -274,12 +249,10 @@ export async function getStockMovementRows(filters: TablePageFilters | string = 
         : { locationId: { in: locationIds } }
       : {}),
     ...(productIds ? { productId: idListWhere(productIds) } : {}),
-    ...(categoryIds || brandIds || companyIds || search
+    ...(categoryIds || search
       ? {
           product: {
             ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-            ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-            ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
             ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
           },
         }
@@ -295,7 +268,7 @@ export async function getStockMovementRows(filters: TablePageFilters | string = 
     orderBy: { movementDate: "desc" },
     include: {
       location: { select: { name: true } },
-      product: { select: { name: true, unit: { select: { name: true } }, company: { select: { name: true } } } },
+      product: { select: { name: true, unit: { select: { name: true } } } },
     },
   });
 
@@ -303,7 +276,6 @@ export async function getStockMovementRows(filters: TablePageFilters | string = 
     id: row.id,
     location: row.location.name,
     product: row.product.name,
-    company: row.product.company?.name ?? "-",
     type: toTitleCase(row.movementType),
       quantity: row.quantity,
       reference: `${row.sourceType} ${row.sourceId}`,
@@ -365,12 +337,10 @@ export async function getTransferRows(filters: TablePageFilters | string = {}) {
 }
 
 export async function getDigitalBinCardRows(filters: TablePageFilters = {}) {
-  const { locationId, productId, categoryId, brandId, companyId, dateFrom, dateTo, type, search } = normalizeFilters(filters);
+  const { locationId, productId, categoryId, dateFrom, dateTo, type, search } = normalizeFilters(filters);
   const locationIds = parseFilterList(locationId);
   const productIds = parseFilterList(productId);
   const categoryIds = parseFilterList(categoryId);
-  const brandIds = parseFilterList(brandId);
-  const companyIds = parseFilterList(companyId);
   const movementTypes = parseFilterList(type);
 
   const baseWhere: any = {
@@ -389,24 +359,12 @@ export async function getDigitalBinCardRows(filters: TablePageFilters = {}) {
         ? { movementType: movementTypes[0] as never }
         : { movementType: { in: movementTypes as never[] } }
       : {}),
-    ...(categoryIds || brandIds || companyIds
+    ...(categoryIds
       ? {
           product: {
-            ...(categoryIds
-              ? categoryIds.length === 1
-                ? { categoryId: categoryIds[0] }
-                : { categoryId: { in: categoryIds } }
-              : {}),
-            ...(brandIds
-              ? brandIds.length === 1
-                ? { brandId: brandIds[0] }
-                : { brandId: { in: brandIds } }
-              : {}),
-            ...(companyIds
-              ? companyIds.length === 1
-                ? { companyId: companyIds[0] }
-                : { companyId: { in: companyIds } }
-              : {}),
+            ...(categoryIds.length === 1
+              ? { categoryId: categoryIds[0] }
+              : { categoryId: { in: categoryIds } }),
           },
         }
       : {}),
@@ -416,8 +374,6 @@ export async function getDigitalBinCardRows(filters: TablePageFilters = {}) {
             { product: { name: { contains: search, mode: "insensitive" } } },
             { product: { sku: { contains: search, mode: "insensitive" } } },
             { product: { category: { name: { contains: search, mode: "insensitive" } } } },
-            { product: { brand: { name: { contains: search, mode: "insensitive" } } } },
-            { product: { company: { name: { contains: search, mode: "insensitive" } } } },
             { sourceType: { contains: search, mode: "insensitive" } },
             { sourceId: { contains: search, mode: "insensitive" } },
             { sourceLineId: { contains: search, mode: "insensitive" } },
@@ -462,8 +418,6 @@ export async function getDigitalBinCardRows(filters: TablePageFilters = {}) {
           sku: true,
           unit: { select: { name: true } },
           category: { select: { name: true } },
-          brand: { select: { name: true } },
-          company: { select: { name: true } },
         },
       },
     },
@@ -484,8 +438,6 @@ export async function getDigitalBinCardRows(filters: TablePageFilters = {}) {
       product: row.product.name,
       sku: row.product.sku,
       category: row.product.category?.name ?? "-",
-      brand: row.product.brand?.name ?? "-",
-      company: row.product.company?.name ?? "-",
       type: toTitleCase(row.movementType),
       reference: `${row.sourceType} ${row.sourceId}`,
       inQty: row.quantity > 0 ? row.quantity : 0,

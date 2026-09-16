@@ -64,8 +64,6 @@ export default async function Page({ searchParams }: ProductsPageProps) {
             unitId: true,
             description: true,
             categoryId: true,
-            brandId: true,
-            companyId: true,
           },
         })
       : null,
@@ -76,11 +74,9 @@ export default async function Page({ searchParams }: ProductsPageProps) {
         })
       : null,
     safeLoadOptions("categories", prisma.category.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } })),
-    safeLoadOptions("brands", prisma.brand.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } })),
-    safeLoadOptions("brand owners", prisma.company.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } })),
     safeLoadOptions("units", prisma.unit.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } })),
   ]);
-  const [product, deleteProduct, categories, brands, companies, units] = results;
+  const [product, deleteProduct, categories, units] = results;
 
   const configWithDelete =
     canDelete
@@ -126,8 +122,6 @@ export default async function Page({ searchParams }: ProductsPageProps) {
           intent={product ? "edit" : "create"}
           initialMode={initialMode}
           categories={categories}
-          brands={brands}
-          companies={companies}
           units={units}
           {...(product
             ? {
@@ -136,12 +130,10 @@ export default async function Page({ searchParams }: ProductsPageProps) {
                   sku: product.sku,
                   name: product.name,
                   categoryId: product.categoryId ?? "",
-                  brandId: product.brandId ?? "",
                   unitId: product.unitId,
                   buyingPrice: Number(product.buyingPrice),
                   sellingPrice: Number(product.sellingPrice),
                   minimumStockAlert: product.minimumStockAlert,
-                  companyId: product.companyId ?? "",
                   description: product.description ?? "",
                 },
               }

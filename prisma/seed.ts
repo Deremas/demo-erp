@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { hashPassword } from "../lib/auth/password";
+import { seedDemoOperations } from "./demo-operations-seed";
 import {
   AccountType,
   AppRole,
@@ -245,7 +246,7 @@ async function seedUnits() {
 }
 
 async function seedCatalogMasters() {
-  const categories = ["Whisky", "Vodka", "Gin", "Rum", "Wine", "Beer", "Tequila", "Other"];
+  const categories = ["Whisky", "Vodka", "Gin", "Rum", "Wine", "Beer", "Tequila", "Cognac", "Champagne", "Liqueur", "Energy", "Water", "Snacks", "Syrup", "Other"];
   const expenseCategories = ["Rent", "Transport", "Utilities", "Salary", "Other"];
 
   for (const name of categories) {
@@ -307,44 +308,7 @@ async function seedFinanceAccounts() {
 
 async function seedDemoCatalog() {
   if (!seedDemoData) return;
-
-  const demoBrand = await prisma.brand.upsert({
-    where: { name: "Demo Brand" },
-    update: { isActive: true },
-    create: { name: "Demo Brand", isActive: true },
-  });
-  const demoCompany = await prisma.company.upsert({
-    where: { name: "Demo Company" },
-    update: { isActive: true },
-    create: { name: "Demo Company", isActive: true },
-  });
-  const category = await prisma.category.findUnique({ where: { name: "Other" } });
-  if (!category) throw new Error("Other category was not seeded.");
-
-  await prisma.product.upsert({
-    where: { sku: "DEMO-ITEM-001" },
-    update: {
-      isActive: true,
-      categoryId: category.id,
-      brandId: demoBrand.id,
-      companyId: demoCompany.id,
-      unitId: "unit_bottle",
-      buyingPrice: money(100),
-      sellingPrice: money(150),
-    },
-    create: {
-      sku: "DEMO-ITEM-001",
-      name: "Demo Item 750ml",
-      categoryId: category.id,
-      brandId: demoBrand.id,
-      companyId: demoCompany.id,
-      unitId: "unit_bottle",
-      buyingPrice: money(100),
-      sellingPrice: money(150),
-      minimumStockAlert: 10,
-      isActive: true,
-    },
-  });
+  await seedDemoOperations(prisma);
 }
 
 async function seedAgentsAndCustomers() {
@@ -390,8 +354,8 @@ async function main() {
   await seedUnits();
   await seedCatalogMasters();
   await seedFinanceAccounts();
-  await seedDemoCatalog();
   await seedAgentsAndCustomers();
+  await seedDemoCatalog();
 
   console.log("Demo ERP production seed completed.");
   console.log(`Admin user ensured: ${process.env.SEED_ADMIN_USERNAME || "admin"}`);

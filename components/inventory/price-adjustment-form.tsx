@@ -13,8 +13,6 @@ type ProductOption = {
   name: string;
   sku: string | null;
   categoryId: string | null;
-  brandId: string | null;
-  companyId: string | null;
   sellingPrice: number;
 };
 
@@ -29,8 +27,6 @@ type PriceAdjustmentFormProps = {
   locations: Option[];
   products: ProductOption[];
   categories: Option[];
-  brands: Option[];
-  companies: Option[];
   existingPrices: ExistingPrice[];
 };
 
@@ -103,14 +99,10 @@ export function PriceAdjustmentForm({
   locations,
   products,
   categories,
-  brands,
-  companies,
   existingPrices,
 }: PriceAdjustmentFormProps) {
   const [locationIds, setLocationIds] = useState<string[]>([]);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
-  const [brandIds, setBrandIds] = useState<string[]>([]);
-  const [companyIds, setCompanyIds] = useState<string[]>([]);
   const [itemSearch, setItemSearch] = useState("");
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [mode, setMode] = useState("PERCENTAGE_INCREASE");
@@ -127,8 +119,6 @@ export function PriceAdjustmentForm({
       toast.success(state.message);
       setLocationIds([]);
       setCategoryIds([]);
-      setBrandIds([]);
-      setCompanyIds([]);
       setItemSearch("");
       setSelectedRowIds([]);
       setMode("PERCENTAGE_INCREASE");
@@ -148,8 +138,6 @@ export function PriceAdjustmentForm({
     const search = itemSearch.trim().toLowerCase();
     const filteredProducts = products.filter((product) => {
       if (categoryIds.length && (!product.categoryId || !categoryIds.includes(product.categoryId))) return false;
-      if (brandIds.length && (!product.brandId || !brandIds.includes(product.brandId))) return false;
-      if (companyIds.length && (!product.companyId || !companyIds.includes(product.companyId))) return false;
       if (search && !`${product.name} ${product.sku ?? ""}`.toLowerCase().includes(search)) return false;
       return true;
     });
@@ -169,7 +157,7 @@ export function PriceAdjustmentForm({
         };
       });
     });
-  }, [amount, brandIds, categoryIds, companyIds, itemSearch, locationIds, locations, mode, priceByKey, products]);
+  }, [amount, categoryIds, itemSearch, locationIds, locations, mode, priceByKey, products]);
 
   const previewRowIds = useMemo(() => previewRows.map((row) => row.id), [previewRows]);
   const previewRowIdKey = previewRowIds.join("|");
@@ -201,10 +189,6 @@ export function PriceAdjustmentForm({
           <CardContent className="p-5 grid gap-5 sm:grid-cols-2">
             <FilterField name="locationIds" label="Locations" options={locations} selected={locationIds} onChange={setLocationIds} required />
             <FilterField name="categoryIds" label="Categories" options={categories} selected={categoryIds} onChange={setCategoryIds} />
-            <FilterField name="brandIds" label="Brands" options={brands} selected={brandIds} onChange={setBrandIds} />
-            <div className="sm:col-span-2">
-              <FilterField name="companyIds" label="Brand Owners" options={companies} selected={companyIds} onChange={setCompanyIds} />
-            </div>
             <div className="sm:col-span-2 space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Item search</label>
               <Input

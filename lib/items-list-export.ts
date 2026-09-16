@@ -8,8 +8,6 @@ export type ItemsListRow = {
   sku: string;
   name: string;
   category: string;
-  brand: string;
-  company: string;
   unit: string;
   buyingPrice: number;
   sellingPrice: number;
@@ -29,8 +27,6 @@ export function buildItemsListExcelBuffer(rows: ItemsListRow[]) {
       "Item Code": row.sku,
       "Item Name": row.name,
       Category: row.category,
-      Brand: row.brand,
-      Company: row.company,
       "Unit": row.unit,
       "Buying Price": row.buyingPrice,
       "Selling Price": row.sellingPrice,
@@ -49,7 +45,7 @@ export function buildItemsListPdfBuffer(rows: ItemsListRow[]) {
   const pageHeight = 595.28;
   const left = 24;
   const right = pageWidth - 24;
-  const colWidths = [58, 175, 88, 78, 85, 68, 84, 84];
+  const colWidths = [80, 220, 110, 80, 90, 90];
   const colStarts = [left];
   for (let i = 0; i < colWidths.length - 1; i += 1) {
     colStarts.push((colStarts[i] ?? left) + (colWidths[i] ?? 0));
@@ -67,7 +63,7 @@ export function buildItemsListPdfBuffer(rows: ItemsListRow[]) {
     page.ops.push(makeRule(left, page.y - 9, right, page.y - 9));
     page.y -= 22;
     page.ops.push(makeBox(left, page.y - 5, right - left, 22));
-    const titles = ["Item Code", "Item Name", "Category", "Brand", "Company", "Unit", "Buy Price", "Sell Price"];
+    const titles = ["Item Code", "Item Name", "Category", "Unit", "Buy Price", "Sell Price"];
     titles.forEach((title, index) => {
       page.ops.push(makeTextLine((colStarts[index] ?? left) + 4, page.y + 9, title, 9, true));
     });
@@ -86,11 +82,9 @@ export function buildItemsListPdfBuffer(rows: ItemsListRow[]) {
     current().ops.push(makeTextLine((colStarts[0] ?? left) + 4, y, row.sku, 8));
     current().ops.push(makeTextLine((colStarts[1] ?? left) + 4, y, row.name.length > 24 ? `${row.name.slice(0, 24)}...` : row.name, 8));
     current().ops.push(makeTextLine((colStarts[2] ?? left) + 4, y, row.category, 8));
-    current().ops.push(makeTextLine((colStarts[3] ?? left) + 4, y, row.brand, 8));
-    current().ops.push(makeTextLine((colStarts[4] ?? left) + 4, y, row.company, 8));
-    current().ops.push(makeTextLine((colStarts[5] ?? left) + 4, y, row.unit, 8));
-    current().ops.push(makeTextLine((colStarts[6] ?? left) + 4, y, row.buyingPrice.toFixed(2), 8));
-    current().ops.push(makeTextLine((colStarts[7] ?? left) + 4, y, row.sellingPrice.toFixed(2), 8));
+    current().ops.push(makeTextLine((colStarts[3] ?? left) + 4, y, row.unit, 8));
+    current().ops.push(makeTextLine((colStarts[4] ?? left) + 4, y, row.buyingPrice.toFixed(2), 8));
+    current().ops.push(makeTextLine((colStarts[5] ?? left) + 4, y, row.sellingPrice.toFixed(2), 8));
     current().ops.push(makeRule(left, y - 3, right, y - 3));
     y -= 16;
   });

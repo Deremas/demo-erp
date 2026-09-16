@@ -52,11 +52,7 @@ export async function getStockSummaryRows(locationId?: string) {
         name: true,
         minimumStockAlert: true,
         category: { select: { name: true } },
-        brand: { select: { name: true } },
-        company: { select: { name: true } },
         categoryId: true,
-        brandId: true,
-        companyId: true,
         unit: { select: { name: true } },
         buyingPrice: true,
         sellingPrice: true,
@@ -89,10 +85,6 @@ export async function getStockSummaryRows(locationId?: string) {
         sku: string;
         category: string;
         categoryId: string | null;
-        brand: string;
-        brandId: string | null;
-        company: string;
-        companyId: string | null;
         unit: string;
         unitId: string | null;
         buyingPrice: number;
@@ -119,10 +111,6 @@ export async function getStockSummaryRows(locationId?: string) {
           sku: product.sku,
           category: product.category?.name ?? "-",
           categoryId: product.categoryId,
-          brand: product.brand?.name ?? "-",
-          brandId: product.brandId,
-          company: product.company?.name ?? "-",
-          companyId: product.companyId,
           unit: product.unit.name,
           unitId: null,
           buyingPrice: toNumber(product.buyingPrice),

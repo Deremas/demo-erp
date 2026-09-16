@@ -54,8 +54,6 @@ type TablePageFilters = {
   locationId?: string;
   productId?: string;
   categoryId?: string;
-  brandId?: string;
-  companyId?: string;
   userId?: string;
   status?: string;
   paymentStatus?: string;
@@ -75,8 +73,6 @@ const filterKeys = [
   "locationId",
   "productId",
   "categoryId",
-  "brandId",
-  "companyId",
   "userId",
   "status",
   "paymentStatus",
@@ -155,20 +151,11 @@ async function getBaseFilterOptions(filters: TablePageFilters) {
             : filters.categoryId,
         }
       : {}),
-    ...(filters.brandId
-      ? {
-          brandId: Array.isArray(filters.brandId)
-            ? { in: filters.brandId }
-            : filters.brandId,
-        }
-      : {}),
   };
 
   const [
     locations,
     categories,
-    brands,
-    companies,
     products,
     customers,
     suppliers,
@@ -182,16 +169,6 @@ async function getBaseFilterOptions(filters: TablePageFilters) {
       select: { id: true, name: true, code: true },
     }),
     prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.brand.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.company.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
@@ -247,8 +224,6 @@ async function getBaseFilterOptions(filters: TablePageFilters) {
       option(`${row.code} - ${row.name}`, row.id),
     ),
     categoryOptions: categories.map((row) => option(row.name, row.id)),
-    brandOptions: brands.map((row) => option(row.name, row.id)),
-    companyOptions: companies.map((row) => option(row.name, row.id)),
     productOptions: products.map((row) => option(row.name, row.id)),
     customerOptions: customers.map((row) =>
       option(row.phone ? `${formatCustomerName(row)} (${row.phone})` : formatCustomerName(row), row.id),
@@ -291,22 +266,6 @@ async function getFilterFields(
     options: options.categoryOptions,
     advanced: true,
   });
-  const brand = filterField({
-    key: "brandId",
-    label: "Brand",
-    type: "multiselect",
-    placeholder: "All brands",
-    options: options.brandOptions,
-    advanced: true,
-  });
-  const company = filterField({
-    key: "companyId",
-    label: "Brand Owner",
-    type: "multiselect",
-    placeholder: "All brand owners",
-    options: options.companyOptions,
-    advanced: true,
-  });
   const product = filterField({
     key: "productId",
     label: "Item",
@@ -343,10 +302,8 @@ async function getFilterFields(
   switch (key) {
     case "inventoryProducts":
       return [
-        search("Search item, SKU, category, or brand"),
+        search("Search item, SKU, or category"),
         category,
-        brand,
-        company,
         filterField({
           key: "status",
           label: "Status",
@@ -358,14 +315,12 @@ async function getFilterFields(
     case "inventoryStock":
     case "inventoryLowStock":
     case "inventoryOutOfStock":
-      return [search("Search item, category, or brand"), location, category, brand, company, product];
+      return [search("Search item, category, or SKU"), location, category, product];
     case "inventoryStockMovements":
       return [
         search("Search item or reference"),
         location,
         category,
-        brand,
-        company,
         product,
         filterField({
           key: "type",
@@ -386,8 +341,6 @@ async function getFilterFields(
         location,
         customer,
         category,
-        brand,
-        company,
         product,
         filterField({
           key: "status",
@@ -415,8 +368,6 @@ async function getFilterFields(
         location,
         customer,
         category,
-        brand,
-        company,
         product,
         dateFrom,
         dateTo,
@@ -443,11 +394,9 @@ async function getFilterFields(
       ];
     case "discountedItemsReport":
       return [
-        search("Search item, category, brand, or company"),
+        search("Search item, category, or SKU"),
         location,
         category,
-        brand,
-        company,
         product,
         dateFrom,
         dateTo,
@@ -500,8 +449,6 @@ async function getFilterFields(
         location,
         supplier,
         category,
-        brand,
-        company,
         product,
         paymentStatus,
         dateFrom,
@@ -513,8 +460,6 @@ async function getFilterFields(
         location,
         supplier,
         category,
-        brand,
-        company,
         product,
         dateFrom,
         dateTo,
@@ -677,12 +622,10 @@ async function getFilterFields(
       ];
     case "inventoryDigitalBinCard":
       return [
-        search("Search item, SKU, category, brand, company, or reference"),
+        search("Search item, SKU, category, or reference"),
         location,
         product,
         category,
-        brand,
-        company,
         filterField({
           key: "type",
           label: "Movement Type",
@@ -709,8 +652,6 @@ export type TablePageKey =
   | "inventoryDigitalBinCard"
   | "inventoryTransfers"
   | "inventoryCategories"
-  | "inventoryBrands"
-  | "inventoryCompanies"
   | "inventoryUnits"
   | "inventoryExpiryAlert"
   | "salesSoldItems"
@@ -791,7 +732,7 @@ export async function getTablePageConfig(
       return {
         eyebrow: "Inventory",
         title: "Items",
-        description: "Master product registry with category, brand, and unit configuration.",
+        description: "Master product registry with category and unit configuration.",
         actionLabel: "New item",
         exportFileName: "items",
         filters: filterFields,
@@ -799,8 +740,6 @@ export async function getTablePageConfig(
           { key: "sku", header: "Item Code / SKU" },
           { key: "name", header: "Item" },
           { key: "category", header: "Category" },
-          { key: "brand", header: "Brand" },
-          { key: "company", header: "Brand Owner" },
           { key: "currentStock", header: "Stock", type: "number" },
           {
             key: "minimumStockAlert",
@@ -823,8 +762,6 @@ export async function getTablePageConfig(
           { key: "location", header: "Location", defaultHidden: true },
           { key: "product", header: "Item" },
           { key: "category", header: "Category" },
-          { key: "brand", header: "Brand" },
-          { key: "company", header: "Brand Owner" },
           { key: "stockBreakdown", header: "Stock Breakdown" },
           { key: "baseQuantity", header: "Qty", type: "number", showTotal: true },
           { key: "buyingPrice", header: "Buying Price", type: "currency" },
@@ -845,7 +782,6 @@ export async function getTablePageConfig(
         columns: [
           { key: "location", header: "Location", defaultHidden: true },
           { key: "name", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "currentStock", header: "Current", type: "number" },
           { key: "minimumStockAlert", header: "Threshold", type: "number" },
           { key: "status", header: "Severity", type: "status" },
@@ -863,7 +799,6 @@ export async function getTablePageConfig(
         columns: [
           { key: "location", header: "Location", defaultHidden: true },
           { key: "name", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "currentStock", header: "Current", type: "number" },
           { key: "minimumStockAlert", header: "Threshold", type: "number" },
           { key: "status", header: "Status", type: "status" },
@@ -879,7 +814,6 @@ export async function getTablePageConfig(
         columns: [
           { key: "location", header: "Location", defaultHidden: true },
           { key: "product", header: "Product" },
-          { key: "company", header: "Brand Owner" },
           { key: "threshold", header: "Threshold", type: "number" },
           { key: "quantityAtAlert", header: "Qty At Alert", type: "number" },
           { key: "status", header: "Status", type: "status" },
@@ -917,7 +851,6 @@ export async function getTablePageConfig(
           { key: "movementDate", header: "Date", type: "dateTime" },
           { key: "location", header: "Location" },
           { key: "product", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "type", header: "Movement Type" },
           { key: "quantity", header: "Qty (Base)", type: "number" },
           { key: "reference", header: "Reference" },
@@ -938,8 +871,6 @@ export async function getTablePageConfig(
           { key: "product", header: "Item" },
           { key: "sku", header: "Item Code / SKU" },
           { key: "category", header: "Category" },
-          { key: "brand", header: "Brand" },
-          { key: "company", header: "Brand Owner" },
           { key: "type", header: "Type" },
           { key: "reference", header: "Reference" },
           { key: "inQty", header: "In", type: "number" },
@@ -985,38 +916,6 @@ export async function getTablePageConfig(
         ],
         rows: await getCategoryRows(),
       };
-    case "inventoryBrands":
-      const { getBrandRows } = await import("@/lib/page-data-inventory-master");
-      return {
-        eyebrow: "Inventory",
-        title: "Brands",
-        description: "Manage liquor brands and product lines.",
-        actionLabel: "New brand",
-        exportFileName: "brands",
-        columns: [
-          { key: "name", header: "Brand" },
-          { key: "productCount", header: "Products", type: "number" },
-          { key: "updatedAt", header: "Last Updated", type: "dateTime" },
-          { key: "status", header: "Status", type: "status" },
-        ],
-        rows: await getBrandRows(),
-      };
-    case "inventoryCompanies":
-      const { getCompanyRows } = await import("@/lib/page-data-inventory-master");
-      return {
-        eyebrow: "Inventory",
-        title: "Brand Owners",
-        description: "Manage brand owners whose items are stocked and sold by Rungo.",
-        actionLabel: "New brand owner",
-        exportFileName: "brand-owners",
-        columns: [
-          { key: "name", header: "Brand Owner" },
-          { key: "productCount", header: "Products", type: "number" },
-          { key: "updatedAt", header: "Last Updated", type: "dateTime" },
-          { key: "status", header: "Status", type: "status" },
-        ],
-        rows: await getCompanyRows(),
-      };
     case "inventoryUnits":
       const { getUnitRows } = await import("@/lib/page-data-inventory-master");
       return {
@@ -1045,7 +944,6 @@ export async function getTablePageConfig(
           { key: "saleNumber", header: "Sale No." },
           { key: "location", header: "Location" },
           { key: "product", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "quantity", header: "Qty Sold", type: "number", showTotal: true },
           { key: "customer", header: "Customer", hideOnMobile: true },
           { key: "unitPrice", header: "Unit Price" },
@@ -1317,7 +1215,6 @@ export async function getTablePageConfig(
           { key: "purchaseNumber", header: "Purchase No." },
           { key: "location", header: "Location" },
           { key: "product", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "quantity", header: "Qty Purchased", type: "number", showTotal: true },
           { key: "supplier", header: "Supplier", hideOnMobile: true },
           { key: "unitPrice", header: "Unit Price" },
@@ -1472,7 +1369,6 @@ export async function getTablePageConfig(
           { key: "saleNumber", header: "Sale No." },
           { key: "product", header: "Product" },
           { key: "category", header: "Category" },
-          { key: "company", header: "Brand Owner" },
           { key: "customer", header: "Customer" },
           { key: "quantity", header: "Qty", type: "number" },
           { key: "unitPrice", header: "Unit Price", type: "currency" },
@@ -1536,7 +1432,6 @@ export async function getTablePageConfig(
         columns: [
           { key: "location", header: "Location", defaultHidden: true },
           { key: "product", header: "Item" },
-          { key: "company", header: "Brand Owner" },
           { key: "quantity", header: "Quantity", type: "number", showTotal: true },
           { key: "stockValue", header: "Buying Value", type: "currency", showTotal: true },
         ],
@@ -1555,7 +1450,6 @@ export async function getTablePageConfig(
           { key: "saleNumber", header: "Sale No." },
           { key: "location", header: "Location" },
           { key: "product", header: "Product" },
-          { key: "company", header: "Brand Owner" },
           { key: "quantity", header: "Qty", type: "number", showTotal: true },
           { key: "saleTotal", header: "Sales", type: "currency", showTotal: true },
           { key: "costTotal", header: "Cost", type: "currency", showTotal: true },

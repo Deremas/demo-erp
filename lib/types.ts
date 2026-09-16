@@ -29,7 +29,6 @@ export type ProductOption = {
   sellingPrice: number;
   defaultBuyingPrice?: number;
   defaultSellingPrice?: number;
-  companyName: string | null;
 };
 
 export type PurchaseFormOptions = {
@@ -285,7 +284,6 @@ export type StockOverviewRow = {
   location: string;
   product: string;
   category: string;
-  brand: string;
   stockBreakdown: string;
   baseQuantity: number;
   preferredPackage: string;

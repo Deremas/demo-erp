@@ -21,20 +21,6 @@ type ItemSeedRow = {
   sellingPrice: number;
 };
 
-const COMPANY_SEED_ROWS = [
-  "Diageo",
-  "William Grant & Sons",
-  "DaVinci Gourmet",
-  "Moet Hennessy",
-  "Bottega SPA",
-  "Edrington",
-  "Fantinel Wines",
-  "Campari Group",
-  "Jaegermeister",
-  "Stoli",
-  "RedBull",
-] as const;
-
 const ITEM_SEED_SOURCE = {
   sourceSheet: "Document",
   extractedRows: 1452,
@@ -1505,29 +1491,6 @@ function money(value: number) {
   return new Prisma.Decimal(value.toFixed(2));
 }
 
-async function seedCompanies() {
-  let created = 0;
-  let updated = 0;
-
-  for (const name of COMPANY_SEED_ROWS) {
-    const existing = await prisma.company.findUnique({ where: { name } });
-
-    await prisma.company.upsert({
-      where: { name },
-      update: { isActive: true },
-      create: { name, isActive: true },
-    });
-
-    if (existing) {
-      updated += 1;
-    } else {
-      created += 1;
-    }
-  }
-
-  return { created, updated };
-}
-
 async function seedUnits() {
   const unitNames = Array.from(new Set(ITEM_SEED_ROWS.map((row) => row.unitName)));
   const unitByName = new Map<string, string>();
@@ -1636,15 +1599,11 @@ async function seedItems(categoryByName: Map<string, string>, unitByName: Map<st
 }
 
 async function main() {
-  const companies = await seedCompanies();
   const units = await seedUnits();
   const categories = await seedCategories();
   const items = await seedItems(categories.categoryByName, units.unitByName);
 
   console.log("Company/item seed completed from embedded Document item data.");
-  console.log(`Companies read: ${COMPANY_SEED_ROWS.length}`);
-  console.log(`Companies created: ${companies.created}`);
-  console.log(`Companies updated: ${companies.updated}`);
   console.log(`Item rows read: ${ITEM_SEED_SOURCE.extractedRows}`);
   console.log(`Skipped source rows: ${ITEM_SEED_SOURCE.skippedRows}`);
   console.log(`Duplicate SKU rows given suffix: ${ITEM_SEED_SOURCE.duplicateSkuRows}`);

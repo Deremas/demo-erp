@@ -44,8 +44,6 @@ export const navigationEntries: NavigationEntry[] = [
       { title: "Price Adjustment", href: "/inventory/price-adjustments", icon: "finance", permission: "inventory:adjust-prices" },
       { title: "Items", href: "/inventory/products", icon: "products", permission: "inventory:edit" },
       { title: "Categories", href: "/inventory/categories", icon: "products", permission: "inventory:edit" },
-      { title: "Brands", href: "/inventory/brands", icon: "suppliers", permission: "inventory:edit" },
-      { title: "Brand Owners", href: "/inventory/companies", icon: "suppliers", permission: "inventory:edit" },
       { title: "Units", href: "/inventory/units", icon: "alertRecords", permission: "inventory:edit" },
     ],
   },

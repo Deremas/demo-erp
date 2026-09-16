@@ -47,8 +47,6 @@ export default async function Page({ searchParams }: PageProps) {
   const historyLocationId = getSingleSearchParam(params, "historyLocationId");
   const historyProductId = getSingleSearchParam(params, "historyProductId");
   const historyCategoryId = getSingleSearchParam(params, "historyCategoryId");
-  const historyBrandId = getSingleSearchParam(params, "historyBrandId");
-  const historyCompanyId = getSingleSearchParam(params, "historyCompanyId");
   const historyMode = getSingleSearchParam(params, "historyMode");
   const dateFrom = getSingleSearchParam(params, "dateFrom");
   const dateTo = getSingleSearchParam(params, "dateTo");
@@ -56,8 +54,6 @@ export default async function Page({ searchParams }: PageProps) {
   const locationIds = parseFilterList(historyLocationId);
   const productIds = parseFilterList(historyProductId);
   const categoryIds = parseFilterList(historyCategoryId);
-  const brandIds = parseFilterList(historyBrandId);
-  const companyIds = parseFilterList(historyCompanyId);
 
   const historyWhere: any = {};
   const createdAt = dateRange(dateFrom, dateTo);
@@ -65,20 +61,16 @@ export default async function Page({ searchParams }: PageProps) {
   if (productIds) historyWhere.productId = productIds.length === 1 ? productIds[0] : { in: productIds };
   if (createdAt) historyWhere.createdAt = createdAt;
   if (historyMode) historyWhere.batch = { mode: historyMode };
-  if (categoryIds || brandIds || companyIds) {
+  if (categoryIds) {
     historyWhere.product = {
-      ...(categoryIds ? { categoryId: categoryIds.length === 1 ? categoryIds[0] : { in: categoryIds } } : {}),
-      ...(brandIds ? { brandId: brandIds.length === 1 ? brandIds[0] : { in: brandIds } } : {}),
-      ...(companyIds ? { companyId: companyIds.length === 1 ? companyIds[0] : { in: companyIds } } : {}),
+      categoryId: categoryIds.length === 1 ? categoryIds[0] : { in: categoryIds },
     };
   }
 
-  const [locations, products, categories, brands, companies, existingPrices, historyRows] = await Promise.all([
+  const [locations, products, categories, existingPrices, historyRows] = await Promise.all([
     prisma.location.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.product.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, sku: true, categoryId: true, brandId: true, companyId: true, sellingPrice: true } }),
+    prisma.product.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, sku: true, categoryId: true, sellingPrice: true } }),
     prisma.category.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.brand.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.company.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.productLocationPrice.findMany({
       select: { productId: true, locationId: true, sellingPrice: true },
     }),
@@ -104,7 +96,7 @@ export default async function Page({ searchParams }: PageProps) {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Inventory</p>
         <h1 className="text-3xl font-black tracking-tight text-foreground">Price Adjustment</h1>
         <p className="mt-2 max-w-3xl text-sm font-medium text-muted-foreground">
-          Update selling prices in bulk for selected locations using item, category, brand, and company filters.
+          Update selling prices in bulk for selected locations using item and category filters.
         </p>
       </div>
 
@@ -116,8 +108,6 @@ export default async function Page({ searchParams }: PageProps) {
         sellingPrice: Number(product.sellingPrice),
       }))}
         categories={categories}
-        brands={brands}
-        companies={companies}
         existingPrices={existingPrices.map((price) => ({
         ...price,
         sellingPrice: Number(price.sellingPrice),
@@ -157,18 +147,6 @@ export default async function Page({ searchParams }: PageProps) {
             <option value="">All categories</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-          </select>
-          <select name="historyBrandId" defaultValue={historyBrandId ?? ""} className="h-10 rounded-xl border bg-background px-3 text-xs font-bold">
-            <option value="">All brands</option>
-            {brands.map((brand) => (
-              <option key={brand.id} value={brand.id}>{brand.name}</option>
-            ))}
-          </select>
-          <select name="historyCompanyId" defaultValue={historyCompanyId ?? ""} className="h-10 rounded-xl border bg-background px-3 text-xs font-bold">
-            <option value="">All brand owners</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>{company.name}</option>
             ))}
           </select>
           <select name="historyMode" defaultValue={historyMode ?? ""} className="h-10 rounded-xl border bg-background px-3 text-xs font-bold">

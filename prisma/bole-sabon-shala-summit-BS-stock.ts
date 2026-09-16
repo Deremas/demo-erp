@@ -14454,8 +14454,6 @@ async function main() {
         sellingPrice: money(0),
         buyingPrice: money(0),
         sellingPrice: money(0),
-        companyId: null,
-        brandId: null,
         description: "Created from " + row.shopName + " shop opening stock seed",
         isActive: true,
       },

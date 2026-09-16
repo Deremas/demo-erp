@@ -27,8 +27,6 @@ export type ReportFilters = {
   paymentStatus?: string;
   productId?: string;
   categoryId?: string;
-  brandId?: string;
-  companyId?: string;
   customerId?: string;
   supplierId?: string;
   userId?: string;
@@ -90,8 +88,6 @@ function toTableFilters(filters: ReportFilters) {
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.productId ? { productId: filters.productId } : {}),
     ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
-    ...(filters.brandId ? { brandId: filters.brandId } : {}),
-    ...(filters.companyId ? { companyId: filters.companyId } : {}),
     ...(filters.customerId ? { customerId: filters.customerId } : {}),
     ...(filters.supplierId ? { supplierId: filters.supplierId } : {}),
     ...(filters.lowStockOnly ? { lowStockOnly: filters.lowStockOnly } : {}),
@@ -117,8 +113,6 @@ async function getProductRankingConfig(definition: ReportDefinition, filters: Re
   const locationIds = parseFilterList(filters.locationId);
   const productIds = parseFilterList(filters.productId);
   const categoryIds = parseFilterList(filters.categoryId);
-  const brandIds = parseFilterList(filters.brandId);
-  const companyIds = parseFilterList(filters.companyId);
   const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
 
   const where: any = {
@@ -132,8 +126,6 @@ async function getProductRankingConfig(definition: ReportDefinition, filters: Re
     product: {
       ...(productIds ? { id: idListWhere(productIds) } : {}),
       ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-      ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-      ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
       ...(filters.search ? { name: { contains: filters.search, mode: "insensitive" } } : {}),
     },
   };
@@ -147,8 +139,6 @@ async function getProductRankingConfig(definition: ReportDefinition, filters: Re
           buyingPrice: true,
           unit: { select: { name: true } },
           category: { select: { name: true } },
-          brand: { select: { name: true } },
-          company: { select: { name: true } },
         },
       },
     },
@@ -160,8 +150,6 @@ async function getProductRankingConfig(definition: ReportDefinition, filters: Re
         id: item.productId,
         product: item.product.name,
         category: item.product.category?.name ?? "-",
-        brand: item.product.brand?.name ?? "-",
-        company: item.product.company?.name ?? "-",
         soldQuantity: 0,
         revenue: 0,
         estimatedCost: 0,
@@ -195,8 +183,6 @@ async function getProductRankingConfig(definition: ReportDefinition, filters: Re
       { key: "rank", header: "Rank", type: "number" },
       { key: "product", header: "Product" },
       { key: "category", header: "Category" },
-      { key: "brand", header: "Brand" },
-      { key: "company", header: "Brand Owner" },
       { key: "soldQuantity", header: "Sold Qty", type: "number", showTotal: true },
       { key: "revenue", header: "Revenue", type: "currency", showTotal: true },
       { key: "estimatedCost", header: "Estimated Cost", type: "currency", showTotal: true },
@@ -274,8 +260,6 @@ async function getPeriodicComparisonConfig(definition: ReportDefinition, filters
   const locationIds = parseFilterList(filters.locationId);
   const productIds = parseFilterList(filters.productId);
   const categoryIds = parseFilterList(filters.categoryId);
-  const brandIds = parseFilterList(filters.brandId);
-  const companyIds = parseFilterList(filters.companyId);
   const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
 
   const salesByRange = await Promise.all(
@@ -285,15 +269,13 @@ async function getPeriodicComparisonConfig(definition: ReportDefinition, filters
           status: "COMPLETED",
           soldAt: { gte: range.from, lte: range.to },
           ...locWhere,
-          ...(productIds || categoryIds || brandIds || companyIds
+          ...(productIds || categoryIds
             ? {
                 items: {
                   some: {
                     product: {
                       ...(productIds ? { id: idListWhere(productIds) } : {}),
                       ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-                      ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-                      ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
                     },
                   },
                 },
@@ -303,7 +285,7 @@ async function getPeriodicComparisonConfig(definition: ReportDefinition, filters
         include: {
           items: {
             include: {
-              product: { select: { buyingPrice: true, categoryId: true, brandId: true, companyId: true } },
+              product: { select: { buyingPrice: true, categoryId: true } },
             },
           },
         },
@@ -319,8 +301,6 @@ async function getPeriodicComparisonConfig(definition: ReportDefinition, filters
       for (const item of sale.items) {
         if (productIds && !productIds.includes(item.productId)) continue;
         if (categoryIds && !categoryIds.includes(item.product.categoryId)) continue;
-        if (brandIds && !brandIds.includes(item.product.brandId)) continue;
-        if (companyIds && !companyIds.includes(item.product.companyId)) continue;
         quantity += item.quantity;
         discount += toNumber(item.discount);
         cost += item.quantity * toNumber(item.product.buyingPrice);
@@ -366,14 +346,10 @@ async function getInventoryByQuantityConfig(definition: ReportDefinition, filter
   
   const productIds = parseFilterList(filters.productId);
   const categoryIds = parseFilterList(filters.categoryId);
-  const brandIds = parseFilterList(filters.brandId);
-  const companyIds = parseFilterList(filters.companyId);
 
   let filtered = stockRows;
   if (productIds) filtered = filtered.filter(r => productIds.includes(r.productId as string));
   if (categoryIds) filtered = filtered.filter(r => categoryIds.includes(r.categoryId as string));
-  if (brandIds) filtered = filtered.filter(r => brandIds.includes(r.brandId as string));
-  if (companyIds) filtered = filtered.filter(r => companyIds.includes(r.companyId as string));
   if (filters.search) {
     const search = filters.search.toLowerCase();
     filtered = filtered.filter(r => r.product.toLowerCase().includes(search));
@@ -387,8 +363,6 @@ async function getInventoryByQuantityConfig(definition: ReportDefinition, filter
     columns: [
       { key: "product", header: "Item" },
       { key: "category", header: "Category" },
-      { key: "brand", header: "Brand" },
-      { key: "company", header: "Brand Owner" },
       { key: "location", header: "Location" },
       { key: "quantity", header: "Base Quantity", type: "number", showTotal: true },
     ],
@@ -408,8 +382,6 @@ async function getItemsListConfig(definition: ReportDefinition, filters: ReportF
       { key: "sku", header: "Item Code" },
       { key: "name", header: "Item Name" },
       { key: "category", header: "Category" },
-      { key: "brand", header: "Brand" },
-      { key: "company", header: "Company" },
       { key: "unit", header: "Unit" },
       { key: "preferredPackage", header: "Package Unit" },
       { key: "buyingPrice", header: "Buying Price", type: "currency" },
@@ -446,14 +418,10 @@ async function getStockRunInConfig(definition: ReportDefinition, filters: Report
   
   const productIds = parseFilterList(filters.productId);
   const categoryIds = parseFilterList(filters.categoryId);
-  const brandIds = parseFilterList(filters.brandId);
-  const companyIds = parseFilterList(filters.companyId);
 
   let filtered = stockRows;
   if (productIds) filtered = filtered.filter(r => productIds.includes(r.productId as string));
   if (categoryIds) filtered = filtered.filter(r => categoryIds.includes(r.categoryId as string));
-  if (brandIds) filtered = filtered.filter(r => brandIds.includes(r.brandId as string));
-  if (companyIds) filtered = filtered.filter(r => companyIds.includes(r.companyId as string));
   if (filters.search) {
     const search = filters.search.toLowerCase();
     filtered = filtered.filter(r => r.product.toLowerCase().includes(search));
@@ -482,8 +450,6 @@ async function getStockRunInConfig(definition: ReportDefinition, filters: Report
     columns: [
       { key: "product", header: "Item" },
       { key: "category", header: "Category" },
-      { key: "brand", header: "Brand" },
-      { key: "company", header: "Brand Owner" },
       { key: "location", header: "Location" },
       { key: "quantity", header: "Current Stock", type: "number" },
       { key: "avgMonthly", header: "Avg Monthly Sales", type: "number" },
@@ -493,107 +459,6 @@ async function getStockRunInConfig(definition: ReportDefinition, filters: Report
     rows,
   };
 }
-
-async function getBrandOwnerPerformanceConfig(definition: ReportDefinition, filters: ReportFilters): Promise<{ config: TablePageConfig; summaries: any[] }> {
-  const locationIds = parseFilterList(filters.locationId);
-  const productIds = parseFilterList(filters.productId);
-  const categoryIds = parseFilterList(filters.categoryId);
-  const brandIds = parseFilterList(filters.brandId);
-  const companyIds = parseFilterList(filters.companyId);
-  const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
-
-  const products = (await prisma.product.findMany({
-    where: {
-      isActive: true,
-      ...(productIds ? { id: idListWhere(productIds) } : {}),
-      ...(companyIds ? { companyId: idListWhere(companyIds) } : {}),
-      ...(categoryIds ? { categoryId: idListWhere(categoryIds) } : {}),
-      ...(brandIds ? { brandId: idListWhere(brandIds) } : {}),
-      ...(filters.search ? { name: { contains: filters.search, mode: "insensitive" } } : {}),
-    },
-    include: {
-      company: true,
-      category: true,
-      brand: true,
-      saleItems: {
-        where: {
-          sale: {
-            status: "COMPLETED",
-            ...locWhere,
-            ...(filters.dateFrom || filters.dateTo
-              ? { soldAt: { ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}), ...(filters.dateTo ? { lte: new Date(filters.dateTo) } : {}) } }
-              : {}),
-          },
-        },
-        include: { sale: { select: { locationId: true } } },
-      },
-    },
-  })) as any[];
-
-  const stockRows = await getStockSummaryRows(filters.locationId);
-  const stockByProduct = new Map<string, { quantity: number; stockValue: number }>();
-  for (const row of stockRows) {
-    const current = stockByProduct.get(row.productId) ?? { quantity: 0, stockValue: 0 };
-    current.quantity += row.quantity;
-    current.stockValue += row.stockValue;
-    stockByProduct.set(row.productId, current);
-  }
-  const grouped = new Map<string, SimpleRow>();
-
-  for (const product of products) {
-    const companyName = product.company?.name ?? "Unassigned";
-    const companyId = product.companyId ?? "unassigned";
-    const current = grouped.get(companyId) ?? {
-      id: companyId,
-      company: companyName,
-      itemCount: 0,
-      quantitySold: 0,
-      salesTotal: 0,
-      discountTotal: 0,
-      stockQty: 0,
-      stockValue: 0,
-      items: "",
-    };
-    const stock = stockByProduct.get(product.id);
-    current.itemCount = Number(current.itemCount) + 1;
-    current.quantitySold = Number(current.quantitySold) + product.saleItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
-    current.salesTotal = Number(current.salesTotal) + product.saleItems.reduce((sum: number, item: any) => sum + toNumber(item.lineTotal), 0);
-    current.discountTotal = Number(current.discountTotal) + product.saleItems.reduce((sum: number, item: any) => sum + toNumber(item.discount), 0);
-    current.stockQty = Number(current.stockQty) + (stock?.quantity ?? 0);
-    current.stockValue = Number(current.stockValue) + (stock?.stockValue ?? 0);
-    current.items = [String(current.items), product.name].filter(Boolean).join(", ");
-    grouped.set(companyId, current);
-  }
-
-  const rows = [...grouped.values()].sort((a, b) => Number(b.salesTotal) - Number(a.salesTotal));
-
-  return {
-    summaries: [
-      { label: "Brand Owners", value: rows.length, type: "number" },
-      { label: "Sales", value: rows.reduce((sum, row) => sum + Number(row.salesTotal), 0), type: "currency" },
-      { label: "Discounts", value: rows.reduce((sum, row) => sum + Number(row.discountTotal), 0), type: "currency" },
-      { label: "Stock Value", value: rows.reduce((sum, row) => sum + Number(row.stockValue), 0), type: "currency" },
-    ],
-    config: {
-      eyebrow: definition.category,
-      title: definition.title,
-      description: definition.description,
-      exportFileName: "brand-owner-performance",
-      columns: [
-        { key: "company", header: "Brand Owner" },
-        { key: "itemCount", header: "Items", type: "number", showTotal: true },
-        { key: "quantitySold", header: "Qty Sold", type: "number", showTotal: true },
-        { key: "salesTotal", header: "Sales", type: "currency", showTotal: true },
-        { key: "discountTotal", header: "Discounts", type: "currency", showTotal: true },
-        { key: "stockQty", header: "Stock Qty", type: "number", showTotal: true },
-        { key: "stockValue", header: "Stock Value", type: "currency", showTotal: true },
-        { key: "items", header: "Items", type: "multiline" },
-      ],
-      rows,
-    },
-  };
-}
-
 
 async function getCashFlowConfig(definition: ReportDefinition, filters: ReportFilters): Promise<TablePageConfig> {
   const locationIds = parseFilterList(filters.locationId);
@@ -674,10 +539,6 @@ export async function getReportConfig(reportId: string, filters: ReportFilters) 
   if (definition.id === "product-ranking") return { definition, config: await getProductRankingConfig(definition, filters), summaries: [] };
   if (definition.id === "payment-method-breakdown") return { definition, config: await getPaymentBreakdownConfig(definition, filters), summaries: [] };
   if (definition.id === "periodic-comparison") return { definition, config: await getPeriodicComparisonConfig(definition, filters), summaries: [] };
-  if (definition.id === "company-performance") {
-    const { config, summaries } = await getBrandOwnerPerformanceConfig(definition, filters);
-    return { definition, config, summaries };
-  }
   if (definition.id === "inventory-by-quantity") return { definition, config: await getInventoryByQuantityConfig(definition, filters), summaries: [] };
   if (definition.id === "items-list") return { definition, config: await getItemsListConfig(definition, filters), summaries: [] };
   if (definition.id === "stock-run-in") return { definition, config: await getStockRunInConfig(definition, filters), summaries: [] };
@@ -697,10 +558,8 @@ export async function getReportConfig(reportId: string, filters: ReportFilters) 
 
 export async function getReportFilterOptions() {
   const user = await getCurrentUser();
-  const [categories, brands, companies, products, customers, suppliers, users, accounts] = await Promise.all([
+  const [categories, products, customers, suppliers, users, accounts] = await Promise.all([
     prisma.category.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.brand.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.company.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
     prisma.customer.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
     prisma.supplier.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
@@ -711,8 +570,6 @@ export async function getReportFilterOptions() {
   return {
     locations: user?.locations ?? [],
     categories,
-    brands,
-    companies,
     products,
     customers,
     suppliers,

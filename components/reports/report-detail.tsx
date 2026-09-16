@@ -34,8 +34,6 @@ type ReportDetailProps = {
   options: {
     locations: Option[];
     categories: Option[];
-    brands: Option[];
-    companies: Option[];
     products: Option[];
     customers: Option[];
     suppliers: Option[];
@@ -47,8 +45,6 @@ type ReportDetailProps = {
 const selectFilters: Partial<Record<ReportFilterKind, { label: string; key: keyof ReportFilters; options?: keyof ReportDetailProps["options"]; values?: { id: string; name: string }[] }>> = {
   product: { label: "Product", key: "productId", options: "products" },
   category: { label: "Category", key: "categoryId", options: "categories" },
-  brand: { label: "Brand", key: "brandId", options: "brands" },
-  company: { label: "Brand Owner", key: "companyId", options: "companies" },
   customer: { label: "Customer", key: "customerId", options: "customers" },
   supplier: { label: "Supplier", key: "supplierId", options: "suppliers" },
   user: { label: "User", key: "userId", options: "users" },
@@ -96,7 +92,7 @@ export function ReportDetail({ definition, config, filters, summaries, options }
 
   function submit(formData: FormData) {
     const params = new URLSearchParams();
-    for (const key of ["locationId", "dateFrom", "dateTo", "search", "status", "paymentMethod", "paymentStatus", "productId", "categoryId", "brandId", "companyId", "customerId", "supplierId", "userId", "movementType", "accountType", "financeAccountId", "sortBy", "lowStockOnly", "range1Month", "range1From", "range1To", "range2Month", "range2From", "range2To", "range3Month", "range3From", "range3To"]) {
+    for (const key of ["locationId", "dateFrom", "dateTo", "search", "status", "paymentMethod", "paymentStatus", "productId", "categoryId", "customerId", "supplierId", "userId", "movementType", "accountType", "financeAccountId", "sortBy", "lowStockOnly", "range1Month", "range1From", "range1To", "range2Month", "range2From", "range2To", "range3Month", "range3From", "range3To"]) {
       const value = String(formData.get(key) ?? "");
       if (value) params.set(key, value);
     }

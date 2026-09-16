@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { createBulkProductsAction, createProductAction, updateProductAction, type BulkProductInput } from "@/lib/actions/products";
-import { createCategoryAction, createBrandAction, createCompanyAction } from "@/lib/actions/inventory-master";
+import { createCategoryAction } from "@/lib/actions/inventory-master";
 import { productEditorSchema, type ProductEditorFormInput, type ProductEditorInput } from "@/lib/validation/product";
 
 type CreateMode = "SINGLE" | "BULK" | "EXCEL";
@@ -34,8 +34,6 @@ type ProductFormProps = {
   onSuccess?: () => void;
   initialMode?: CreateMode;
   categories?: MasterDataOption[];
-  brands?: MasterDataOption[];
-  companies?: MasterDataOption[];
   units?: MasterDataOption[];
 };
 
@@ -44,13 +42,11 @@ const createDefaultValues: ProductEditorFormInput = {
   sku: "",
   name: "",
   categoryId: "",
-  brandId: "",
   unitId: "",
   buyingPrice: 0,
   sellingPrice: 0,
   minimumStockAlert: 0,
   description: "",
-  companyId: "",
 };
 
 export function ProductForm({
@@ -62,8 +58,6 @@ export function ProductForm({
   onSuccess,
   initialMode,
   categories = [],
-  brands = [],
-  companies = [],
   units = [],
 }: ProductFormProps) {
   const createDialog = useCreateDialog();
@@ -73,17 +67,9 @@ export function ProductForm({
   const [createMode, setCreateMode] = useState<CreateMode>(initialMode || "SINGLE");
   const [bulkContent, setBulkContent] = useState("");
   
-  const [localCategories, setLocalCategories] = useState(categories);
-  const [localBrands, setLocalBrands] = useState(brands);
-  const [localCompanies, setLocalCompanies] = useState(companies);
-  
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-  const [brandModalOpen, setBrandModalOpen] = useState(false);
-  const [companyModalOpen, setCompanyModalOpen] = useState(false);
   
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [newBrandName, setNewBrandName] = useState("");
-  const [newCompanyName, setNewCompanyName] = useState("");
 
   const isEdit = intent === "edit";
   const defaultValues = useMemo(
@@ -137,34 +123,6 @@ export function ProductForm({
     }
   }
 
-  async function handleAddBrand(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newBrandName.trim()) return;
-    const result = await createBrandAction({ name: newBrandName.trim(), isActive: true });
-    if (result.success) {
-      toast.success(result.message);
-      router.refresh();
-      setBrandModalOpen(false);
-      setNewBrandName("");
-    } else {
-      toast.error(result.message);
-    }
-  }
-
-  async function handleAddCompany(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newCompanyName.trim()) return;
-    const result = await createCompanyAction({ name: newCompanyName.trim(), isActive: true });
-    if (result.success) {
-      toast.success(result.message);
-      router.refresh();
-      setCompanyModalOpen(false);
-      setNewCompanyName("");
-    } else {
-      toast.error(result.message);
-    }
-  }
-
   function onSubmit(values: ProductEditorInput) {
     startTransition(async () => {
       setSubmitError(null);
@@ -201,11 +159,9 @@ export function ProductForm({
         name: values.name,
         minimumStockAlert: values.minimumStockAlert,
         categoryId: values.categoryId,
-        brandId: values.brandId,
         unitId: values.unitId,
         buyingPrice: values.buyingPrice,
         sellingPrice: values.sellingPrice,
-        companyId: values.companyId,
         description: values.description,
       };
       const result = isEdit
@@ -302,29 +258,6 @@ export function ProductForm({
                   <Input placeholder="Auto-generated if empty" {...form.register("sku")} className="h-10 text-xs font-mono" />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Brand Owner Reference</Label>
-                  <div className="flex gap-2">
-                    <Select 
-                      onChange={(e) => form.setValue("companyId", e.target.value)} 
-                      value={form.watch("companyId") || ""}
-                      className="h-10 text-xs"
-                    >
-                      <option value="">No Brand Owner</option>
-                      {localCompanies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </Select>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-10 w-10 shrink-0 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
-                      onClick={() => setCompanyModalOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
                 <div className="space-y-1.5 md:col-span-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description / Notes</Label>
                   <textarea
@@ -387,7 +320,7 @@ export function ProductForm({
                       className="h-9 text-xs"
                     >
                       <option value="" disabled>Select category</option>
-                      {localCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </Select>
                     <Button 
                       type="button" 
@@ -395,29 +328,6 @@ export function ProductForm({
                       size="icon" 
                       className="h-9 w-9 shrink-0 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
                       onClick={() => setCategoryModalOpen(true)}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Brand</Label>
-                  <div className="flex gap-2">
-                    <Select 
-                      onChange={(e) => form.setValue("brandId", e.target.value)} 
-                      value={form.watch("brandId") || ""}
-                      className="h-9 text-xs"
-                    >
-                      <option value="">No Brand</option>
-                      {localBrands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </Select>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-9 w-9 shrink-0 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
-                      onClick={() => setBrandModalOpen(true)}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </Button>
@@ -460,24 +370,6 @@ export function ProductForm({
           <div className="space-y-4 pt-4">
             <Input placeholder="Category Name" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
             <Button onClick={handleAddCategory} type="button" className="w-full">Save Category</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={brandModalOpen} onOpenChange={setBrandModalOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Quick Add Brand</DialogTitle></DialogHeader>
-          <div className="space-y-4 pt-4">
-            <Input placeholder="Brand Name" value={newBrandName} onChange={(e) => setNewBrandName(e.target.value)} />
-            <Button onClick={handleAddBrand} type="button" className="w-full">Save Brand</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={companyModalOpen} onOpenChange={setCompanyModalOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Quick Add Brand Owner</DialogTitle></DialogHeader>
-          <div className="space-y-4 pt-4">
-            <Input placeholder="Brand Owner Name" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} />
-            <Button onClick={handleAddCompany} type="button" className="w-full">Save Brand Owner</Button>
           </div>
         </DialogContent>
       </Dialog>
