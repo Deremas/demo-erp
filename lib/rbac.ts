@@ -327,6 +327,7 @@ const pathPermissionRules: ReadonlyArray<{
   { prefix: "/sales/wholesale", permission: "sales:create" },
   { prefix: "/sales/new", permission: "sales:create" },
   { prefix: "/sales/agents", permission: "customers:view" },
+  { prefix: "/sales/agent-credit", permission: "customers:view" },
   { prefix: "/sales/customers", permission: "customers:view" },
   { prefix: "/sales/customer-credit", permission: "customers:view" },
   { prefix: "/sales/customer-payments", permission: "customer-payments:create" },
@@ -373,4 +374,5 @@ export function canAccessPath(
 ) {
   const requiredPermission = getRequiredPermissionForPath(pathname);
 
-  return !requiredPermission || hasPermission(role, requiredPermission, grant
+  return !requiredPermission || hasPermission(role, requiredPermission, grantedPermissions);
+}

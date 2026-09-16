@@ -163,10 +163,16 @@ export default async function DashboardPage(props: {
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/purchases/imports">1. Receive import</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/inventory/transfers">2. Transfer to shop</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/sales/pos">3. Cash/credit sale</a>
-            <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/sales/agents">4. Agent balances</a>
+            <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/sales/agent-credit">4. Agent credit</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/finance/ledger">5. Accounting ledger</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/reports">6. Reports</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/admin/audit-logs">7. Audit</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/admin/backups">8. Backup</a>
             <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/assistant">9. AI</a>
-            <a className="rounded-full border px-3 py-
+            <a className="rounded-full border px-3 py-1 hover:border-sky-400" href="/demo">10. Quotation</a>
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
+  );
+}

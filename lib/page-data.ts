@@ -447,6 +447,7 @@ async function getFilterFields(
     case "salesCustomers":
     case "salesAgents":
     case "salesCustomerCredit":
+    case "salesAgentCredit":
       return [
         search("Search customer, business, TIN, contact, phone, or address"),
         location,
@@ -698,6 +699,7 @@ export type TablePageKey =
   | "salesCustomers"
   | "salesAgents"
   | "salesCustomerCredit"
+  | "salesAgentCredit"
   | "salesCustomerPayments"
   | "purchasesList"
   | "purchasesImports"
@@ -1154,6 +1156,25 @@ export async function getTablePageConfig(
           { key: "status", header: "Status", type: "status" },
         ],
         rows: await getCustomerCreditRows(normalizedFilters),
+      };
+    case "salesAgentCredit":
+      return {
+        eyebrow: "Sales",
+        title: "Agent Credit",
+        description: "Outstanding agent balances, credit limits, and settlement actions.",
+        exportFileName: "agent-credit",
+        filters: filterFields,
+        columns: [
+          { key: "customer", header: "Agent" },
+          { key: "phone", header: "Phone" },
+          { key: "outstanding", header: "Outstanding", type: "currency", showTotal: true },
+          { key: "creditLimit", header: "Credit Limit", type: "currency", showTotal: true },
+          { key: "availableCredit", header: "Available", type: "currency", showTotal: true },
+          { key: "agingBucket", header: "Aging", type: "status" },
+          { key: "lastPurchaseAt", header: "Last Sale", type: "dateTime" },
+          { key: "status", header: "Status", type: "status" },
+        ],
+        rows: await getCustomerCreditRows({ ...normalizedFilters, type: "AGENT" }),
       };
     case "salesCustomerPayments":
       return {

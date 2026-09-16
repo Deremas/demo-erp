@@ -70,12 +70,12 @@ export const requirementCoverage = [
   {
     requirement: "Warehouse and stock control",
     capability: "Warehouse receiving, current stock, low-stock alerts, movements, bin cards, and transfers.",
-    href: "/inventory/transfers",
+    href: "/inventory/stock-movements",
   },
   {
     requirement: "Agent credit and balances",
     capability: "Agent accounts with credit limits, outstanding balances, credit sales, and collections.",
-    href: "/sales/agents",
+    href: "/sales/agent-credit",
   },
   {
     requirement: "Sales",
@@ -100,7 +100,7 @@ export const requirementCoverage = [
   {
     requirement: "Accounting",
     capability: "Cash and bank accounts, cheques, cash transfers, and a chronological account ledger.",
-    href: "/finance/ledger",
+    href: "/finance/accounts",
   },
   {
     requirement: "Expenses",

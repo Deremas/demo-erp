@@ -36,12 +36,6 @@ export const navigationEntries: NavigationEntry[] = [
     icon: "inventory",
     items: [
       {
-        title: "Items",
-        href: "/inventory/products",
-        icon: "products",
-        permission: "inventory:edit",
-      },
-      {
         title: "Current Stock",
         href: "/inventory/stock",
         icon: "stockOverview",
@@ -54,16 +48,40 @@ export const navigationEntries: NavigationEntry[] = [
         permission: "inventory:transfer",
       },
       {
-        title: "Price Adjustment",
-        href: "/inventory/price-adjustments",
-        icon: "finance",
-        permission: "inventory:adjust-prices",
+        title: "Stock Movements",
+        href: "/inventory/stock-movements",
+        icon: "stockMovements",
+        permission: "inventory:view",
       },
       {
         title: "Low Stock",
         href: "/inventory/low-stock",
         icon: "lowStock",
         permission: "inventory:view",
+      },
+      {
+        title: "Out of Stock",
+        href: "/inventory/out-of-stock",
+        icon: "alertRecords",
+        permission: "inventory:view",
+      },
+      {
+        title: "Alert Records",
+        href: "/inventory/alert-records",
+        icon: "alertRecords",
+        permission: "inventory:view",
+      },
+      {
+        title: "Price Adjustment",
+        href: "/inventory/price-adjustments",
+        icon: "finance",
+        permission: "inventory:adjust-prices",
+      },
+      {
+        title: "Items",
+        href: "/inventory/products",
+        icon: "products",
+        permission: "inventory:edit",
       },
       {
         title: "Categories",
@@ -145,6 +163,12 @@ export const navigationEntries: NavigationEntry[] = [
         permission: "customers:view",
       },
       {
+        title: "Agent Credit",
+        href: "/sales/agent-credit",
+        icon: "customerCredit",
+        permission: "customers:view",
+      },
+      {
         title: "Payments",
         href: "/sales/customer-payments",
         icon: "customerPayments",
@@ -207,6 +231,12 @@ export const navigationEntries: NavigationEntry[] = [
         permission: "accounts:view",
       },
       {
+        title: "Cash",
+        href: "/finance/cash",
+        icon: "cashTransfers",
+        permission: "cash-transfers:view",
+      },
+      {
         title: "Cheques",
         href: "/finance/cheques",
         icon: "customerPayments",
@@ -266,9 +296,15 @@ export const navigationEntries: NavigationEntry[] = [
     permission: "users:view",
     items: [
       {
+        title: "System Setup",
+        href: "/setup",
+        icon: "settings",
+        permission: "settings:manage",
+      },
+      {
         title: "Locations",
         href: "/admin/locations",
-        icon: "branches",
+        icon: "warehouse",
         permission: "settings:manage",
       },
       {
@@ -313,6 +349,7 @@ export const navigationEntries: NavigationEntry[] = [
 
 const hiddenPageTitles: NavigationItem[] = [
   { title: "Agents", href: "/sales/agents", icon: "customers" },
+  { title: "Agent Credit", href: "/sales/agent-credit", icon: "customerCredit" },
   { title: "Imports", href: "/purchases/imports", icon: "upload" },
   { title: "AI Insights", href: "/assistant", icon: "assistant", permission: "ai:view" },
   { title: "Demo & Quotation", href: "/demo", icon: "demo", permission: "demo:view" },

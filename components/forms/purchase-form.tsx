@@ -280,14 +280,10 @@ export function PurchaseForm({
   const [isSupplierDialogOpen, setSupplierDialogOpen] = useState(false);
 
   const defaultValues = initialData ?? getDefaultValues(
-    { ...options, suppliers: options.suppliers },
-    initialLocationId,
-    initialProductId,
-    defaultIsUsd,
-  );
     { ...options, suppliers: supplierOptions },
     initialLocationId,
     initialProductId,
+    defaultIsUsd,
   );
 
   const canSubmit = options.locations.length > 0 && options.products.length > 0;

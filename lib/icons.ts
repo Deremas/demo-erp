@@ -36,6 +36,7 @@ import {
   Printer,
   MapPin,
   UploadCloud,
+  Warehouse,
 } from "lucide-react";
 
 export const iconMap = {
@@ -50,6 +51,7 @@ export const iconMap = {
   categories: Blocks,
   brands: BriefcaseBusiness,
   stockOverview: Store,
+  warehouse: Warehouse,
   lowStock: AlarmClockCheck,
   alertRecords: ShieldCheck,
   stockMovements: ArrowLeftRight,
