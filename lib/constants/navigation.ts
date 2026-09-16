@@ -125,13 +125,6 @@ export const navigationEntries: NavigationEntry[] = [
     permission: "reports:view",
   },
   {
-    type: "link",
-    title: "AI Insights",
-    href: "/assistant",
-    icon: "assistant",
-    permission: "ai:view",
-  },
-  {
     type: "group",
     title: "Setup",
     icon: "admin",
@@ -151,6 +144,7 @@ export const navigationEntries: NavigationEntry[] = [
 ];
 
 const hiddenPageTitles: NavigationItem[] = [
+  { title: "AI Insights", href: "/assistant", icon: "assistant", permission: "ai:view" },
   { title: "New Import", href: "/imports/new", icon: "newPurchase" },
   { title: "Import List", href: "/imports", icon: "purchaseList" },
   { title: "USD Payables", href: "/imports/payables", icon: "supplierPayments" },
