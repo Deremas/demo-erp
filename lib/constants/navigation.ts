@@ -190,15 +190,36 @@ export function getVisibleNavigation(role: AppRole, permissions?: readonly strin
     .filter((entry) => (entry.type === "link" ? true : entry.items.length > 0));
 }
 
+/** True when pathname is this href, or a nested path under it. */
+export function navHrefMatches(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** Longest matching href wins so `/imports` does not stay active on `/imports/new`. */
+export function getBestMatchingHref(pathname: string, hrefs: readonly string[]) {
+  let best: string | null = null;
+  for (const href of hrefs) {
+    if (!navHrefMatches(pathname, href)) continue;
+    if (!best || href.length > best.length) best = href;
+  }
+  return best;
+}
+
+export function isNavHrefActive(pathname: string, href: string, competingHrefs: readonly string[]) {
+  return getBestMatchingHref(pathname, competingHrefs) === href;
+}
+
 export function getNavigationTitle(pathname: string) {
   const items = navigationEntries.flatMap((entry) =>
     entry.type === "link" ? [entry] : entry.items,
   );
-  const candidates = [...items, ...hiddenPageTitles]
-    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
-    .sort((left, right) => right.href.length - left.href.length);
+  const candidates = [...items, ...hiddenPageTitles];
+  const bestHref = getBestMatchingHref(
+    pathname,
+    candidates.map((item) => item.href),
+  );
 
-  return candidates[0]?.title ?? "Operational System";
+  return candidates.find((item) => item.href === bestHref)?.title ?? "Operational System";
 }
 
 export function getOpenGroupForPath(pathname: string, role: AppRole, permissions?: readonly string[]) {
@@ -206,9 +227,7 @@ export function getOpenGroupForPath(pathname: string, role: AppRole, permissions
   const match = visibleEntries.find((entry) => {
     return (
       entry.type === "group" &&
-      entry.items.some(
-        (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-      )
+      entry.items.some((item) => navHrefMatches(pathname, item.href)),
     );
   });
 

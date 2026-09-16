@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PurchaseForm } from "@/components/forms/purchase-form";
 import { getPurchaseFormOptions, getPurchaseInitialValues } from "@/lib/form-options";
@@ -20,6 +21,10 @@ export default async function NewPurchasePage({ searchParams }: NewPurchasePageP
   const initialValues = purchaseId ? await getPurchaseInitialValues(purchaseId) : undefined;
 
   const isEdit = mode === "edit" && !!initialValues;
+
+  if (isEdit && initialValues.isUsd) {
+    redirect(`/imports/new?purchaseId=${purchaseId}&mode=edit`);
+  }
 
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-hidden space-y-6">

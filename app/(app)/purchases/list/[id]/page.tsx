@@ -89,6 +89,12 @@ export default async function PurchaseDetailPage(props: { params: Promise<{ id: 
     notFound();
   }
 
+  const isImport = purchase.trackInUsd;
+  const listHref = isImport ? "/imports" : "/purchases/list";
+  const editHref = isImport
+    ? `/imports/new?purchaseId=${purchase.id}&mode=edit`
+    : `/purchases/new?purchaseId=${purchase.id}&mode=edit&open=1`;
+
   // Access Control: Ensure user is authorized to view this location's purchases
   const isAuthorized = user.role === "ADMIN" || user.locations.some(l => l.id === purchase.locationId);
   if (!isAuthorized) {
@@ -102,13 +108,15 @@ export default async function PurchaseDetailPage(props: { params: Promise<{ id: 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild className="h-9 rounded-xl">
-            <Link href="/purchases/list">
+            <Link href={listHref}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to List
             </Link>
           </Button>
           <div className="h-6 w-px bg-slate-200" />
-          <h1 className="text-xl font-black tracking-tight uppercase">Purchase Details</h1>
+          <h1 className="text-xl font-black tracking-tight uppercase">
+            {isImport ? "Import Details" : "Purchase Details"}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           {Number(purchase.amountDue) > 0 && purchase.supplierId && (
@@ -126,8 +134,8 @@ export default async function PurchaseDetailPage(props: { params: Promise<{ id: 
             label="Print Invoice"
           />
           <Button className="rounded-xl shadow-lg shadow-primary/20" asChild>
-            <Link href={`/purchases/new?purchaseId=${purchase.id}&mode=edit&open=1`}>
-              Edit Purchase
+            <Link href={editHref}>
+              {isImport ? "Edit Import" : "Edit Purchase"}
             </Link>
           </Button>
         </div>

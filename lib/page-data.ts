@@ -1140,7 +1140,7 @@ export async function getTablePageConfig(
         eyebrow: "Purchases",
         title: "Purchase List",
         description:
-          "Supplier purchase history with location and payable balance.",
+          "Local ETB supplier purchases. USD imports are listed under Imports.",
         actionLabel: "New purchase",
         actionHref: "/purchases/new",
         exportFileName: "purchase-list",
@@ -1151,12 +1151,10 @@ export async function getTablePageConfig(
           { key: "supplier", header: "Supplier" },
           { key: "total", header: "Invoice Total", type: "currency", showTotal: true },
           { key: "amountDue", header: "Balance Due", type: "currency", showTotal: true },
-          { key: "usdTotal", header: "Total (USD)", type: "usd", showTotal: true },
-          { key: "usdAmountDue", header: "Balance (USD)", type: "usd", showTotal: true },
           { key: "paymentStatus", header: "Payment Status", type: "status" },
           { key: "purchasedAt", header: "Purchased At", type: "dateTime" },
         ],
-        rows: await getPurchaseRows(normalizedFilters),
+        rows: await getPurchaseRows({ ...normalizedFilters, type: "LOCAL" }),
       };
     case "purchasesImports":
       return {
@@ -1208,7 +1206,7 @@ export async function getTablePageConfig(
         eyebrow: "Purchases",
         title: "Purchased Items",
         description:
-          "Line-level purchased item history for item and category review.",
+          "Line-level local purchase history. Import lines are on USD import invoices.",
         exportFileName: "purchased-items",
         filters: filterFields,
         columns: [
@@ -1219,11 +1217,9 @@ export async function getTablePageConfig(
           { key: "supplier", header: "Supplier", hideOnMobile: true },
           { key: "unitPrice", header: "Unit Price" },
           { key: "total", header: "Total (ETB)", type: "currency", showTotal: true },
-          { key: "unitCostUsd", header: "Unit Cost (USD)", type: "usd" },
-          { key: "totalUsd", header: "Total (USD)", type: "usd", showTotal: true },
           { key: "purchasedAt", header: "Purchased At", type: "dateTime", hideOnMobile: true },
         ],
-        rows: await getPurchasedItemRows(normalizedFilters),
+        rows: await getPurchasedItemRows({ ...normalizedFilters, type: "LOCAL" }),
       };
     case "purchasesSuppliers":
       return {
@@ -1462,7 +1458,7 @@ export async function getTablePageConfig(
         eyebrow: "Reports",
         title: "Purchase Report",
         description:
-          "Supplier purchases with item details, totals, and unpaid balances.",
+          "Local ETB supplier purchases with item details and unpaid balances.",
         exportFileName: "purchase-report",
         columns: [
           { key: "purchaseNumber", header: "Purchase No.", defaultHidden: true },
@@ -1471,12 +1467,10 @@ export async function getTablePageConfig(
           { key: "itemsPurchased", header: "Items", type: "multiline" },
           { key: "total", header: "Total (ETB)", type: "currency", showTotal: true },
           { key: "amountDue", header: "Due (ETB)", type: "currency", showTotal: true },
-          { key: "usdTotal", header: "Total (USD)", type: "usd", showTotal: true },
-          { key: "usdAmountDue", header: "Due (USD)", type: "usd", showTotal: true },
           { key: "paymentStatus", header: "Status", type: "status" },
           { key: "purchasedAt", header: "Purchased At", type: "dateTime" },
         ],
-        rows: await getPurchaseRows(normalizedFilters),
+        rows: await getPurchaseRows({ ...normalizedFilters, type: "LOCAL" }),
       };
     case "reportsFinance":
       return {

@@ -87,6 +87,7 @@ export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
         : {}),
     status: "POSTED",
     ...(type === "IMPORT" ? { trackInUsd: true } : {}),
+    ...(type === "LOCAL" ? { trackInUsd: false } : {}),
     ...(productId || categoryId
       ? {
           items: {
@@ -132,6 +133,11 @@ export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
 
   return purchases.map((purchase) => {
     const totalQuantity = sumRows(purchase.items.map((i) => Number(i.quantity)));
+    const isImport = purchase.trackInUsd;
+    const documentHref = isImport ? `/imports/${purchase.id}` : `/purchases/list/${purchase.id}`;
+    const editHref = isImport
+      ? `/imports/new?purchaseId=${purchase.id}&mode=edit`
+      : `/purchases/new?purchaseId=${purchase.id}&mode=edit&open=1`;
     return {
       id: purchase.id,
       purchaseNumber: purchase.purchaseNumber,
@@ -150,7 +156,7 @@ export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
         createRowAction({
           key: "view",
           label: "View",
-          href: `/purchases/list/${purchase.id}`,
+          href: documentHref,
           icon: "view",
         }),
         ...(toNumber(purchase.amountDue) > 0
@@ -166,7 +172,7 @@ export async function getPurchaseRows(filters: TablePageFilters | string = {}) {
         createRowAction({
           key: "edit",
           label: "Edit",
-          href: `/purchases/new?purchaseId=${purchase.id}&mode=edit&open=1`,
+          href: editHref,
           icon: "edit",
         }),
         createRowAction({
@@ -973,13 +979,15 @@ export async function getExpenseCategoryRows(): Promise<SimpleRow[]> {
   }));
 }
 export async function getPurchasedItemRows(filters: any): Promise<SimpleRow[]> {
-  const { locationId, supplierId, productId, categoryId, search, dateFrom, dateTo } = filters;
+  const { locationId, supplierId, productId, categoryId, search, dateFrom, dateTo, type } = filters;
   const locationIds = parseFilterList(locationId);
   const locWhere: any = locationIds ? (locationIds.length === 1 ? { locationId: locationIds[0] } : { locationId: { in: locationIds } }) : {};
 
   const where: any = {
     purchase: {
       status: "POSTED",
+      ...(type === "IMPORT" ? { trackInUsd: true } : {}),
+      ...(type === "LOCAL" ? { trackInUsd: false } : {}),
       ...(locationIds ? locWhere : {}),
       ...(supplierId ? { supplierId: idListWhere(supplierId) } : {}),
       ...(dateFrom || dateTo

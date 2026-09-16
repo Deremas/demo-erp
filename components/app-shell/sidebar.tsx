@@ -10,6 +10,8 @@ import { usePathname } from "next/navigation";
 import {
   getOpenGroupForPath,
   getVisibleNavigation,
+  isNavHrefActive,
+  navHrefMatches,
 } from "@/lib/constants/navigation";
 import { getIcon } from "@/lib/icons";
 import type { AppRole } from "@/lib/rbac";
@@ -32,6 +34,13 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const entries = useMemo(() => getVisibleNavigation(role, permissions), [role, permissions]);
+  const competingHrefs = useMemo(
+    () =>
+      entries.flatMap((entry) =>
+        entry.type === "link" ? [entry.href] : entry.items.map((item) => item.href),
+      ),
+    [entries],
+  );
   const [openGroup, setOpenGroup] = useState<string | null>(
     getOpenGroupForPath(pathname, role, permissions),
   );
@@ -95,7 +104,7 @@ export function AppSidebar({
               const Icon = getIcon(entry.icon);
 
               if (entry.type === "link") {
-                const active = pathname === entry.href || pathname.startsWith(`${entry.href}/`);
+                const active = isNavHrefActive(pathname, entry.href, competingHrefs);
 
                 return (
                   <Link
@@ -116,9 +125,7 @@ export function AppSidebar({
                 );
               }
 
-              const groupActive = entry.items.some(
-                (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-              );
+              const groupActive = entry.items.some((item) => navHrefMatches(pathname, item.href));
               const expanded = openGroup === entry.title;
 
               return (
@@ -153,7 +160,7 @@ export function AppSidebar({
                     <div className="ml-5 space-y-2 border-l border-cyan-100/16 pl-4 pt-2">
                       {entry.items.map((item) => {
                         const ItemIcon = getIcon(item.icon);
-                        const itemActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                        const itemActive = isNavHrefActive(pathname, item.href, competingHrefs);
 
                         return (
                           <Link

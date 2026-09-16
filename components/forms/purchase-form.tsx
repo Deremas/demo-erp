@@ -310,7 +310,7 @@ export function PurchaseForm({
   const locationId = form.watch("locationId");
   const supplierId = form.watch("supplierId");
   const settlementMode = form.watch("settlementMode");
-  const isUsd = isImport || Boolean(form.watch("isUsd"));
+  const isUsd = isImport;
   const exchangeRate = Number(form.watch("exchangeRate") || 0);
   const paymentMethod = form.watch("paymentMethod");
   const paymentAccountId = form.watch("paymentAccountId");
@@ -412,8 +412,10 @@ export function PurchaseForm({
   }, [form, items, options.products]);
 
   useEffect(() => {
-    if (!isImport) return;
-    form.setValue("isUsd", true, { shouldDirty: false });
+    form.setValue("isUsd", isImport, { shouldDirty: false });
+    if (!isImport) {
+      form.setValue("exchangeRate", 0, { shouldDirty: false });
+    }
   }, [form, isImport]);
 
   useEffect(() => {
@@ -504,9 +506,15 @@ export function PurchaseForm({
     startTransition(async () => {
       setSubmitError(null);
 
+      const payload = {
+        ...values,
+        isUsd: isImport,
+        exchangeRate: isImport ? values.exchangeRate : 0,
+      };
+
       const result = await (defaultValues.id
-        ? updatePurchaseAction(values)
-        : createPurchaseAction(values));
+        ? updatePurchaseAction(payload)
+        : createPurchaseAction(payload));
 
       if (!result.success) {
         setSubmitError(result.message);
@@ -607,31 +615,7 @@ export function PurchaseForm({
                   </Select>
                 </div>
 
-                {!isImport ? (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD Tracking</Label>
-                    <div className="flex h-10 w-fit items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 dark:border-slate-800 dark:bg-slate-900/50">
-                      <span className="text-[10px] font-bold uppercase text-slate-400">Track in USD</span>
-                      <button
-                        type="button"
-                        onClick={() => form.setValue("isUsd", !form.watch("isUsd"), { shouldDirty: true })}
-                        className={cn(
-                          "relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                          isUsd ? "bg-blue-600" : "bg-slate-300",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                            isUsd ? "translate-x-3" : "translate-x-0",
-                          )}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {isUsd ? (
+                {isImport ? (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Exchange Rate (ETB/USD)</Label>
                     <Input
