@@ -28,9 +28,16 @@ function FilterControl({
   onChange: (value: string) => void;
 }) {
   const isSearch = field.type === "search" || !field.type;
+  const widthClass = isSearch
+    ? "w-[240px]"
+    : field.type === "date"
+      ? "w-[148px]"
+      : field.type === "multiselect"
+        ? "w-[176px]"
+        : "w-[160px]";
 
   return (
-    <div className={cn("space-y-1", isSearch ? "min-w-[220px] flex-[1.4]" : "min-w-[132px] flex-1")}>
+    <div className={cn("shrink-0 space-y-1", widthClass)}>
       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         {field.label}
       </label>
